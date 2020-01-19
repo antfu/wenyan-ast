@@ -1,0 +1,16 @@
+// Ensure the condition is true, otherwise throw an error.
+// This is only to have a better contract semantic, i.e. another safety net
+// to catch a logic error. The condition shall be fulfilled in normal case.
+// Do NOT use this to enforce a certain condition on any user input.
+export function assert(condition: boolean, message: string): void {
+  if (!condition)
+    throw new Error(`ASSERT: ${message}`)
+}
+
+export function formatErrorMessage(message: string, values: string[]) {
+  const args = values.slice()
+  return message.replace(/%(\d)/g, (_, idx) => {
+    assert(idx < args.length, 'Message reference must be in range')
+    return args[idx]
+  })
+}

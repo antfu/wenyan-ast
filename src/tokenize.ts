@@ -3,6 +3,7 @@ import { ErrorHandler } from './error-handler'
 import { Messages } from './messages'
 import { Character } from './character'
 import { Token, TokenDefine, TokenType } from './types'
+import { formatErrorMessage } from './utils'
 
 export interface TokenizerOptions {
   tolerant: boolean
@@ -84,7 +85,10 @@ export class Tokenizer {
         continue
       }
 
-      this.scanKeywords()
+      // TODO: comments
+
+      if (!this.scanKeywords())
+        this.throwUnexpectedToken(Messages.UnexpectedToken, char)
     }
 
     // EOF
@@ -108,7 +112,7 @@ export class Tokenizer {
         this.pushToken(keywords[id], {
           start: this.index - 1,
         })
-        return
+        return true
       }
     }
   }
@@ -238,21 +242,21 @@ export class Tokenizer {
     })
   }
 
-  public throwUnexpectedToken(message = Messages.UnexpectedTokenIllegal): never {
+  public throwUnexpectedToken(message = Messages.UnexpectedTokenIllegal, ...values: string[]): never {
     return this.errorHandler.throwError(
       this.index,
       this.lineNumber,
       this.index - this.lineStart + 1,
-      message,
+      formatErrorMessage(message, values),
     )
   }
 
-  private tolerateUnexpectedToken(message = Messages.UnexpectedTokenIllegal) {
+  private tolerateUnexpectedToken(message = Messages.UnexpectedTokenIllegal, ...values: string[]) {
     this.errorHandler.tolerateError(
       this.index,
       this.lineNumber,
       this.index - this.lineStart + 1,
-      message,
+      formatErrorMessage(message, values),
     )
   }
 }
