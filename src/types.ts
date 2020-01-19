@@ -9,6 +9,20 @@ export type TokenType =
   | 'operator'
   | 'builtin'
   | 'punctuations'
+  | 'name'
+  | 'bool'
+  | 'call'
+  | 'reassign'
+  | 'answer'
+  | 'control'
+  | 'expression'
+  | 'import'
+  | 'throw'
+  | 'try'
+  | 'macro'
+  | 'comment'
+  | 'opord'
+  | 'arrayOperator'
 
 export interface TokenDefine {
   type: TokenType
