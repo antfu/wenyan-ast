@@ -1,7 +1,8 @@
-import { Token, KEYWORDS_MAX_LENGTH, KEYWORDS, TokenDefine } from './keywords'
+import { KEYWORDS_MAX_LENGTH, KEYWORDS, KEYWORDS_NUMBERS } from './keywords'
 import { ErrorHandler } from './error-handler'
 import { Messages } from './messages'
 import { Character } from './character'
+import { Token, TokenDefine } from './types'
 
 export interface TokenizerOptions {
   tolerant: boolean
@@ -53,6 +54,7 @@ export class Tokenizer {
       last = this.index
 
       const ch = this.source.charCodeAt(this.index)
+      const char = this.source[this.index]
 
       if (Character.isWhiteSpace(ch)) {
         this.index++
@@ -63,11 +65,28 @@ export class Tokenizer {
         this.index++
 
         const next = this.source.charCodeAt(this.index)
-        if (ch === 0x0D && next === 0x0A)
+        if (ch === 0x0D && next === 0x0A) // \n\t
           this.index++
 
         this.lineNumber++
         this.lineStart = this.index
+        continue
+      }
+
+      if (Character.isPunctuation(ch)) {
+        this.index++
+        this.pushToken({ type: 'punctuations', value: char }, 1)
+        continue
+      }
+
+      if (KEYWORDS_NUMBERS.includes(char)) {
+        this.scanNumber()
+        continue
+      }
+
+      if (Character.isBracketStart(ch)) {
+        this.scanBracket()
+        continue
       }
 
       this.scanKeywords()
@@ -97,6 +116,24 @@ export class Tokenizer {
     }
   }
 
+  public scanNumber() {
+    let chars = ''
+    while (true) {
+      const char = this.source[this.index]
+      if (!KEYWORDS_NUMBERS.includes(char))
+        break
+
+      chars += char
+      this.index++
+    }
+    if (chars)
+      this.pushToken({ type: 'number', value: chars })
+  }
+
+  public scanBracket() {
+    // TODO:
+  }
+
   /**
    * Return current position
    */
@@ -114,10 +151,6 @@ export class Tokenizer {
       ...define,
       ...this.getPosition(length),
     })
-  }
-
-  public scanNumber() {
-    // TODO:
   }
 
   public throwUnexpectedToken(message = Messages.UnexpectedTokenIllegal): never {

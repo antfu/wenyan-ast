@@ -13,4 +13,12 @@ export const Character = {
   isLineTerminator(cp: number): boolean {
     return (cp === 0x0A) || (cp === 0x0D) || (cp === 0x2028) || (cp === 0x2029)
   },
+
+  isPunctuation(cp: number) {
+    return (cp === 0x3002) || (cp === 0x3001) // 。、
+  },
+
+  isBracketStart(cp: number) {
+    return (cp === 0x300C) || (cp === 0x300E) // 「『
+  },
 }

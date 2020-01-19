@@ -11,42 +11,30 @@ describe('should', () => {
     }])
   })
 
-  it('print', () => {
-    expect(tokenize('數書之'))
+  it('declarion', () => {
+    expect(tokenize('吾有一數。曰三。書之。'))
       .toEqual([
+        expect.objectContaining({ type: 'declarion', value: 'private' }),
+        expect.objectContaining({ type: 'number', value: '一' }),
         expect.objectContaining({ type: 'type', value: 'number' }),
+        expect.objectContaining({ type: 'punctuations', value: '。' }),
+        expect.objectContaining({ type: 'assign' }),
+        expect.objectContaining({ type: 'number', value: '三' }),
+        expect.objectContaining({ type: 'punctuations', value: '。' }),
         expect.objectContaining({ type: 'builtin', value: 'print' }),
+        expect.objectContaining({ type: 'punctuations', value: '。' }),
         expect.objectContaining({ type: 'EOF' }),
       ])
   })
 
   /*
-  it('declarion', () => {
-    expect(tokenize('吾有一數。'))
-      .toEqual([
-        { type: 'declarion', value: 'private' },
-        { type: 'number', value: '1' },
-        { type: 'type', value: 'number' },
-        { type: 'text', value: '。' },
-      ])
-  })
-
-  it('assign', () => {
-    expect(tokenize('曰三。'))
-      .toEqual([
-        { type: 'assign' },
-        { type: 'number', value: 3 },
-        { type: 'text', value: '。' },
-      ])
-  })
-
   it('naming', () => {
     expect(tokenize('名之曰「甲」。'))
-      .toEqual([
-        { type: 'name' },
-        { type: 'identifier', value: '甲' },
-        { type: 'text', value: '。' },
-      ])
+    .toEqual([
+      { type: 'name' },
+      { type: 'identifier', value: '甲' },
+      { type: 'text', value: '。' },
+    ])
   })
   */
 })

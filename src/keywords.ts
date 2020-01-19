@@ -1,25 +1,6 @@
-export type TokenType =
-  | 'EOF'
-  | 'accessibility'
-  | 'declarion'
-  | 'type'
-  | 'assign'
-  | 'control'
-  | 'text'
-  | 'operator'
-  | 'builtin'
+import { TokenDefine } from './types'
 
-export interface TokenDefine {
-  type: TokenType
-  value?: string
-}
-
-export interface Token extends TokenDefine {
-  lineNumber: number
-  lineStart: number
-  start: number
-  end: number
-}
+export const KEYWORDS_NUMBERS = '負·又零〇一二三四五六七八九十百千萬億兆京垓秭穰溝澗正載極分釐毫絲忽微纖沙塵埃渺漠'
 
 export const KEYWORDS_ONE_WORD: Record<string, TokenDefine> = {
   有: { type: 'declarion' },
