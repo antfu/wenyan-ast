@@ -239,13 +239,21 @@ export class Tokenizer {
   }
 
   public throwUnexpectedToken(message = Messages.UnexpectedTokenIllegal): never {
-    return this.errorHandler.throwError(this.index, this.lineNumber,
-      this.index - this.lineStart + 1, message)
+    return this.errorHandler.throwError(
+      this.index,
+      this.lineNumber,
+      this.index - this.lineStart + 1,
+      message,
+    )
   }
 
   private tolerateUnexpectedToken(message = Messages.UnexpectedTokenIllegal) {
-    this.errorHandler.tolerateError(this.index, this.lineNumber,
-      this.index - this.lineStart + 1, message)
+    this.errorHandler.tolerateError(
+      this.index,
+      this.lineNumber,
+      this.index - this.lineStart + 1,
+      message,
+    )
   }
 }
 
