@@ -27,14 +27,49 @@ describe('should', () => {
       ])
   })
 
-  /*
   it('naming', () => {
     expect(tokenize('名之曰「甲」。'))
-    .toEqual([
-      { type: 'name' },
-      { type: 'identifier', value: '甲' },
-      { type: 'text', value: '。' },
-    ])
+      .toEqual([
+        expect.objectContaining({ type: 'name' }),
+        expect.objectContaining({ type: 'identifier', value: '甲' }),
+        expect.objectContaining({ type: 'punctuations', value: '。' }),
+        expect.objectContaining({ type: 'EOF' }),
+      ])
   })
-  */
+
+  it('string', () => {
+    expect(tokenize('曰「「甲」」'))
+      .toEqual([
+        expect.objectContaining({ type: 'assign' }),
+        expect.objectContaining({ type: 'string', value: '甲' }),
+        expect.objectContaining({ type: 'EOF' }),
+      ])
+  })
+
+  it('nested string', () => {
+    expect(tokenize('曰「「「「甲」」」」'))
+      .toEqual([
+        expect.objectContaining({ type: 'assign' }),
+        expect.objectContaining({ type: 'string', value: '「「甲」」' }),
+        expect.objectContaining({ type: 'EOF' }),
+      ])
+  })
+
+  it('nested string', () => {
+    expect(tokenize('曰『甲』'))
+      .toEqual([
+        expect.objectContaining({ type: 'assign' }),
+        expect.objectContaining({ type: 'string', value: '甲' }),
+        expect.objectContaining({ type: 'EOF' }),
+      ])
+  })
+
+  it('nested string', () => {
+    expect(tokenize('曰「「甲』」」'))
+      .toEqual([
+        expect.objectContaining({ type: 'assign' }),
+        expect.objectContaining({ type: 'string', value: '甲』' }),
+        expect.objectContaining({ type: 'EOF' }),
+      ])
+  })
 })

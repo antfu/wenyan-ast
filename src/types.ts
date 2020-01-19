@@ -5,13 +5,13 @@ export type TokenType =
   | 'number'
   | 'assign'
   | 'control'
-  | 'text'
   | 'operator'
   | 'builtin'
   | 'punctuations'
   | 'name'
   | 'bool'
   | 'call'
+  | 'string'
   | 'reassign'
   | 'answer'
   | 'control'
@@ -23,6 +23,7 @@ export type TokenType =
   | 'comment'
   | 'opord'
   | 'arrayOperator'
+  | 'identifier'
 
 export interface TokenDefine {
   type: TokenType
