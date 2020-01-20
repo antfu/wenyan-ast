@@ -3,13 +3,41 @@ import { Tokenizer } from './tokenize'
 
 export enum ASTType {
   Program,
-  VariableDeclaration
+  VariableDeclaration,
+  Value,
 }
 
-export interface ASTNode {
-  type: ASTType
+export enum VarType {
+  Number = 'number',
+  String = 'string',
+  Array = 'array',
+  Object = 'object',
+  Boolean = 'bool',
+  Auto = 'auto',
+}
+
+export interface ASTProgram {
+  type: ASTType.Program
   body: ASTNode[]
 }
+
+export interface ASTValue {
+  type: ASTType.Value
+  value: string | number | boolean
+}
+
+export interface ASTVariableDeclaration {
+  type: ASTType.VariableDeclaration
+  varType: VarType
+  count: number
+  name: string[]
+  values: ASTValue[]
+  accessability: 'public' | 'private'
+}
+
+export type ASTNode =
+  | ASTProgram
+  | ASTVariableDeclaration
 
 export class Parser {
   tokens: Token[]
@@ -30,7 +58,7 @@ export class Parser {
   }
 
   get eof() {
-    return this.index < this.length
+    return this.index <= this.length
   }
 
   private get current() {
@@ -62,6 +90,7 @@ export class Parser {
 
       this.index++
     }
+    return root
   }
 
   private scanDeclarion() {
@@ -71,4 +100,8 @@ export class Parser {
   getAST() {
     return this.parse(this.ast)
   }
+}
+
+export function parse(src: string) {
+  return new Parser(src).getAST()
 }

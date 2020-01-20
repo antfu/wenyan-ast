@@ -13,6 +13,7 @@ module.exports = {
     'jest',
   ],
   rules: {
-    'space-before-function-paren': 'off'
+    'space-before-function-paren': 'off',
+    'curly': ['error', 'all'],
   },
 }

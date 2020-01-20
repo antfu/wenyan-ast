@@ -166,8 +166,9 @@ export function hanzi2numstr(s: string): string | null {
     const result: NumberToken[] = [{ type: NumberTokenType.BEGIN }]
     for (let i = 0; i < s.length; ++i) {
       const tokenStr = s.charAt(i)
-      if (!NUM_TOKENS[tokenStr])
+      if (!NUM_TOKENS[tokenStr]) {
         return null
+      }
 
       result.push(NUM_TOKENS[tokenStr])
     }
@@ -202,14 +203,16 @@ export function hanzi2numstr(s: string): string | null {
         return this._exps[this._exps.length - 1]
       },
       state() {
-        if (this.isEmpty())
+        if (this.isEmpty()) {
           return eMultState.NONE
-        else if (this._exps[0] < 0)
+        }
+        else if (this._exps[0] < 0) {
           return eMultState.FRAC
-        else if (this._exps[0] < Infinity)
+        }
+        else if (this._exps[0] < Infinity) {
           return eMultState.INT
-        else
-          return eMultState.DONE
+        }
+        else { return eMultState.DONE }
       },
 
       push(exp: number) {
@@ -280,8 +283,9 @@ export function hanzi2numstr(s: string): string | null {
       if (
         multStack.state() === eMultState.SIGN
         && token.type !== NumberTokenType.BEGIN
-      )
+      ) {
         return null
+      }
 
       // disambiguate omitted 一
       switch (digitState) {
@@ -374,8 +378,9 @@ export function hanzi2numstr(s: string): string | null {
             // 萬(零一|零|〇)萬 -> 萬零萬
             // 百(零一|零|〇)萬 -> 百零萬
             case NumberTokenType.INT_MULT:
-              if (token.exp == null)
+              if (token.exp == null) {
                 return null
+              }
 
               if (multStack.top() + 1 < token.exp) {
                 result.push('1')
@@ -410,8 +415,9 @@ export function hanzi2numstr(s: string): string | null {
 
           case NumberTokenType.DECIMAL:
           case NumberTokenType.FRAC_MULT:
-            if (token.exp != null)
+            if (token.exp != null) {
               result.resetExp(token.exp)
+            }
             break
 
           default:
@@ -484,8 +490,9 @@ export function hanzi2numstr(s: string): string | null {
                   multStack.push(token.exp)
                 }
                 else {
-                  while (!multStack.isEmpty() && multStack.top() < token.exp)
+                  while (!multStack.isEmpty() && multStack.top() < token.exp) {
                     multStack.pop()
+                  }
 
                   multStack.push(token.exp)
                 }
@@ -506,8 +513,9 @@ export function hanzi2numstr(s: string): string | null {
                   !multStack.isEmpty()
                   && multStack.top() < token.exp
                   && multStack.top() >= 0
-                )
+                ) {
                   multStack.pop()
+                }
 
                 multStack.push(token.exp)
                 break
@@ -515,42 +523,50 @@ export function hanzi2numstr(s: string): string | null {
             return multStack.total()
         }
       })()
-      if (currExp == null)
+      if (currExp == null) {
         return null
+      }
 
       // check for overlapping decimal places
-      if (currExp < result.exp())
+      if (currExp < result.exp()) {
         return null
+      }
 
       // check for disallowed missing decimal places
       if (currExp > result.exp()) {
         const check = function () {
-          if (token.type === NumberTokenType.BEGIN || token.type === NumberTokenType.SIGN)
+          if (token.type === NumberTokenType.BEGIN || token.type === NumberTokenType.SIGN) {
             return true
+          }
 
           if (
             digitState === eDigitState.DELIM
             || digitState === eDigitState.ZERO
-          )
+          ) {
             return true
+          }
 
-          if (token.type === NumberTokenType.INT_MULT)
+          if (token.type === NumberTokenType.INT_MULT) {
             return true
+          }
 
           if (
             token.type === NumberTokenType.FRAC_MULT
             || token.type === NumberTokenType.DECIMAL
-          )
+          ) {
             return true
+          }
 
           return false
         }
 
-        if (!check())
+        if (!check()) {
           return null
+        }
 
-        if (multStack.state() !== eMultState.DONE)
+        if (multStack.state() !== eMultState.DONE) {
           result.fillZeros(currExp)
+        }
       }
 
       // push the digit, update parser state
@@ -568,11 +584,11 @@ export function hanzi2numstr(s: string): string | null {
           if (
             digitState === eDigitState.ZERO
             || digitState === eDigitState.DIGIT_WITH_ZERO
-          )
+          ) {
             digitState = eDigitState.DIGIT_WITH_ZERO
+          }
 
-          else
-            digitState = eDigitState.DIGIT
+          else { digitState = eDigitState.DIGIT }
 
           break
 
@@ -616,8 +632,9 @@ export function hanzi2numstr(s: string): string | null {
       }
     }
 
-    if (result.digits().length === 0)
+    if (result.digits().length === 0) {
       return null
+    }
 
     return {
       sign: result.sign(),
@@ -628,11 +645,11 @@ export function hanzi2numstr(s: string): string | null {
 
   function getDigit(result: any, exp: number) {
     const idx = exp - result.exp
-    if (idx >= 0 && idx < result.digits.length)
+    if (idx >= 0 && idx < result.digits.length) {
       return result.digits[idx]
+    }
 
-    else
-      return '0'
+    else { return '0' }
   }
 
   function compareMagnitude(resultA: ParseResult, resultB: ParseResult) {
@@ -642,23 +659,27 @@ export function hanzi2numstr(s: string): string | null {
     for (let i = maxExp; i >= resultA.exp || i >= resultB.exp; --i) {
       const digitA = Number(getDigit(resultA, i))
       const digitB = Number(getDigit(resultB, i))
-      if (digitA > digitB)
+      if (digitA > digitB) {
         return 1
+      }
 
-      else if (digitA < digitB)
+      else if (digitA < digitB) {
         return -1
+      }
     }
     return 0
   }
 
   // parse
   const tokens = tokenize(s)
-  if (tokens == null)
+  if (tokens == null) {
     return null
+  }
 
   const result = parse(tokens)
-  if (result == null)
+  if (result == null) {
     return null
+  }
 
   // build decimal string
   if (!Number.isFinite(result.sign)) {
@@ -669,8 +690,9 @@ export function hanzi2numstr(s: string): string | null {
 
   // no fractional digits (including zero) and fits in int64?
   const printAsInt = (function () {
-    if (result.exp < 0)
+    if (result.exp < 0) {
       return false
+    }
 
     const c = compareMagnitude(result, RESULT_2_TO_63)
     return result.sign < 0 ? c <= 0 : c < 0
@@ -685,8 +707,9 @@ export function hanzi2numstr(s: string): string | null {
   const rendExp = result.exp + rend
 
   let rbegin = result.digits.length
-  while (result.digits[rbegin - 1] === '0')
+  while (result.digits[rbegin - 1] === '0') {
     --rbegin
+  }
 
   const rbeginExp = result.exp + rbegin
 
@@ -700,28 +723,32 @@ export function hanzi2numstr(s: string): string | null {
     const fixedLen
       = rendExp < 0 ? Math.max(rbeginExp, 1) - rendExp + 1 : rbeginExp
     const scientificMagLen = rbegin - rend > 1 ? rbegin - rend + 1 : 1
-    if (scientificMagLen + expStr.length < fixedLen)
+    if (scientificMagLen + expStr.length < fixedLen) {
       printAsScientific = true
+    }
   }
 
   if (printAsScientific) {
     str += result.digits[rbegin - 1]
     if (rbegin - 1 > rend) {
       str += '.'
-      for (let i = rbegin - 1; i > rend; --i)
+      for (let i = rbegin - 1; i > rend; --i) {
         str += result.digits[i - 1]
+      }
     }
     str += expStr
     return str
   }
   else {
-    for (let i = Math.max(rbeginExp, 1); i > 0; --i)
+    for (let i = Math.max(rbeginExp, 1); i > 0; --i) {
       str += getDigit(result, i - 1)
+    }
 
     if (rendExp < 0) {
       str += '.'
-      for (let i = 0; i > rendExp; --i)
+      for (let i = 0; i > rendExp; --i) {
         str += getDigit(result, i - 1)
+      }
     }
     return str
   }
@@ -729,11 +756,11 @@ export function hanzi2numstr(s: string): string | null {
 
 export function hanzi2num(s: string): number {
   const str = hanzi2numstr(s)
-  if (str == null)
+  if (str == null) {
     return NaN
+  }
 
-  else
-    return Number(str)
+  else { return Number(str) }
 }
 
 export function num2hanzi(
@@ -742,14 +769,15 @@ export function num2hanzi(
   precision = undefined,
 ): string {
   if (!Number.isFinite(n)) {
-    if (n === Infinity)
+    if (n === Infinity) {
       return INF_WORD
+    }
 
-    else if (n === -Infinity)
+    else if (n === -Infinity) {
       return NEG_WORD + INF_WORD
+    }
 
-    else
-      return NAN_WORD
+    else { return NAN_WORD }
   }
 
   // the same format as hanzi2numstr.parse
@@ -789,12 +817,14 @@ export function num2hanzi(
   let result = parseNumStr(numStr)
   let signStr = result.sign < 0 ? NEG_WORD : ''
   let rend = result.digits.findIndex(x => x !== '0')
-  if (rend < 0)
+  if (rend < 0) {
     return signStr + digitWords['0']
+  }
 
   let rbegin = result.digits.length
-  while (result.digits[rbegin - 1] === '0')
+  while (result.digits[rbegin - 1] === '0') {
     --rbegin
+  }
 
   // is this beyond the lowest fractional unit we can represent?
   const minMultExp = multWords[multWords.length - 1].exp
@@ -804,12 +834,14 @@ export function num2hanzi(
     result = parseNumStr(numStr)
     signStr = result.sign < 0 ? NEG_WORD : ''
     rend = result.digits.findIndex(x => x !== '0')
-    if (rend < 0)
+    if (rend < 0) {
       return signStr + digitWords['0']
+    }
 
     rbegin = result.digits.length
-    while (result.digits[rbegin - 1] === '0')
+    while (result.digits[rbegin - 1] === '0') {
       --rbegin
+    }
   }
 
   // convert digits to readout format
@@ -857,25 +889,31 @@ export function num2hanzi(
     return hasOutput
   }
   const fracToReadout = function () {
-    const mult = multWords.find(x => x.exp <= result.exp + (i - 1))
-    if (mult === undefined)
-      return
+    // eslint-disable-next-line no-unmodified-loop-condition
+    while (i !== rend) {
+      const mult = multWords.find(x => x.exp <= result.exp + (i - 1))
+      if (mult === undefined) {
+        break
+      }
 
-    if (intToReadout(mult.exp)) {
-      str += mult.str
-      pendingZero = false
+      if (intToReadout(mult.exp)) {
+        str += mult.str
+        pendingZero = false
+      }
     }
   }
 
   const hasInt = intToReadout()
   pendingZero = false
   if (i !== rend) {
-    if (hasInt)
+    if (hasInt) {
       str += decimalWord
+    }
 
     // avoid 又零
-    while (i !== rend && result.digits[i - 1] === '0')
+    while (i !== rend && result.digits[i - 1] === '0') {
       --i
+    }
 
     fracToReadout()
   }

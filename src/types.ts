@@ -44,3 +44,5 @@ export interface Position {
   char: number
   index: number
 }
+
+export type RomanizeSystem = 'none' | 'pinyin' | 'unicode' | 'baxter'
