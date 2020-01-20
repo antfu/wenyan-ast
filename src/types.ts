@@ -1,29 +1,30 @@
-export type TokenType =
-  | 'EOF'
-  | 'declarion'
-  | 'type'
-  | 'number'
-  | 'assign'
-  | 'control'
-  | 'operator'
-  | 'builtin'
-  | 'punctuations'
-  | 'name'
-  | 'bool'
-  | 'call'
-  | 'string'
-  | 'reassign'
-  | 'answer'
-  | 'control'
-  | 'expression'
-  | 'import'
-  | 'throw'
-  | 'try'
-  | 'macro'
-  | 'comment'
-  | 'opord'
-  | 'arrayOperator'
-  | 'identifier'
+export enum TokenType {
+  EOF,
+  Answer,
+  ArrayOperator,
+  Assign,
+  Bool,
+  Builtin,
+  Call,
+  Comment,
+  Control,
+  Declarion,
+  Expression,
+  Identifier,
+  Import,
+  Macro,
+  Name,
+  Number,
+  Operator,
+  OpOrd,
+  Punctuations,
+  Reassign,
+  String,
+  Throw,
+  Try,
+  Type,
+  PropertyDeclarion
+}
 
 export interface TokenDefine {
   type: TokenType
@@ -31,8 +32,12 @@ export interface TokenDefine {
 }
 
 export interface Token extends TokenDefine {
-  lineNumber: number
-  lineStart: number
-  start: number
-  end: number
+  start: Position
+  end: Position
+}
+
+export interface Position {
+  line: number
+  char: number
+  index: number
 }

@@ -2,8 +2,9 @@ import { KEYWORDS_MAX_LENGTH, KEYWORDS, KEYWORDS_NUMBERS } from './keywords'
 import { ErrorHandler } from './error-handler'
 import { Messages } from './messages'
 import { Character } from './character'
-import { Token, TokenDefine, TokenType } from './types'
+import { Token, TokenDefine, TokenType, Position } from './types'
 import { formatErrorMessage } from './utils'
+import { hanzi2numstr } from './converts/hanzi2num'
 
 export interface TokenizerOptions {
   tolerant: boolean
@@ -22,7 +23,7 @@ export class Tokenizer {
 
   constructor(
     public readonly source: string,
-    options: Partial<TokenizerOptions>,
+    options: Partial<TokenizerOptions> = {},
   ) {
     const {
       tolerant = false,
@@ -69,9 +70,8 @@ export class Tokenizer {
 
       if (Character.isPunctuation(ch)) {
         this.index++
-        this.pushToken({ type: 'punctuations', value: char }, {
-          start: this.index - 1,
-        })
+        const start = this.getPosition(-1)
+        this.pushToken({ type: TokenType.Punctuations, value: char }, start)
         continue
       }
 
@@ -92,7 +92,7 @@ export class Tokenizer {
     }
 
     // EOF
-    this.pushToken({ type: 'EOF' })
+    this.pushToken({ type: TokenType.EOF })
 
     return this.tokens
   }
@@ -108,10 +108,9 @@ export class Tokenizer {
       const id = this.source.slice(this.index, this.index + len)
 
       if (keywords[id]) {
+        const end = this.getPosition(len)
         this.index += len
-        this.pushToken(keywords[id], {
-          start: this.index - 1,
-        })
+        this.pushToken(keywords[id], undefined, end)
         return true
       }
     }
@@ -141,27 +140,27 @@ export class Tokenizer {
       this.index++
     }
     if (chars)
-      this.pushToken({ type: 'number', value: chars })
+      this.pushToken({ type: TokenType.Number, value: hanzi2numstr(chars) || undefined })
   }
 
   public scanBracket() {
     let curly = 1
     let chars = ''
-    let type: TokenType = 'identifier'
+    let type: TokenType = TokenType.Identifier
     let bracketType: 'single' | 'double' = 'single'
 
-    const start = this.index
+    const start = this.getPosition()
     const char = this.source[this.index]
     const next = this.source[this.index + 1]
 
     if (char === '『') {
-      type = 'string'
+      type = TokenType.String
       bracketType = 'double'
       curly = 2
       this.index += 1
     }
     else if (char === '「' && next === '「') {
-      type = 'string'
+      type = TokenType.String
       curly = 2
       this.index += 2
     }
@@ -191,7 +190,7 @@ export class Tokenizer {
         else if (char === '」') {
           curly -= 1
           if (curly <= 0) {
-            if (type === 'string')
+            if (type === TokenType.String)
               chars = chars.slice(0, -1)
             this.index += 1
             break
@@ -219,26 +218,26 @@ export class Tokenizer {
     if (curly < 0)
       this.throwUnexpectedToken()
 
-    this.pushToken({ type, value: chars }, { start })
+    this.pushToken({ type, value: chars }, start)
   }
 
   /**
    * Return current position
    */
-  private getPosition() {
+  private getPosition(offest = 0): Position {
+    const index = this.index + offest
     return {
-      lineNumber: this.lineNumber,
-      lineStart: this.lineStart,
-      start: this.index,
-      end: this.index,
+      line: this.lineNumber,
+      index,
+      char: index - this.lineStart,
     }
   }
 
-  private pushToken(define: TokenDefine, override: Partial<Token> = {}) {
+  private pushToken(define: TokenDefine, start?: Position, end?: Position) {
     this.tokens.push({
       ...define,
-      ...this.getPosition(),
-      ...override,
+      start: start || this.getPosition(),
+      end: end || this.getPosition(),
     })
   }
 
