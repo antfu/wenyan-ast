@@ -51,8 +51,7 @@ export class Tokenizer {
     let last = this.index - 1
 
     while (!this.eof()) {
-      if (last === this.index)
-        this.throwUnexpectedToken()
+      if (last === this.index) { this.throwUnexpectedToken() }
       last = this.index
 
       const ch = this.source.charCodeAt(this.index)
@@ -87,8 +86,7 @@ export class Tokenizer {
 
       // TODO: comments
 
-      if (!this.scanKeywords())
-        this.throwUnexpectedToken(Messages.UnexpectedToken, char)
+      if (!this.scanKeywords()) { this.throwUnexpectedToken(Messages.UnexpectedToken, char) }
     }
 
     // EOF
@@ -122,8 +120,9 @@ export class Tokenizer {
 
     this.index++
 
-    if (ch === 0x0D && next === 0x0A) // \n\t
+    if (ch === 0x0D && next === 0x0A) { // \n\t
       this.index++
+    }
 
     this.lineNumber++
     this.lineStart = this.index
@@ -133,14 +132,12 @@ export class Tokenizer {
     let chars = ''
     while (true) {
       const char = this.source[this.index]
-      if (!KEYWORDS_NUMBERS.includes(char))
-        break
+      if (!KEYWORDS_NUMBERS.includes(char)) { break }
 
       chars += char
       this.index++
     }
-    if (chars)
-      this.pushToken({ type: TokenType.Number, value: hanzi2num(chars) || undefined })
+    if (chars) { this.pushToken({ type: TokenType.Number, value: hanzi2num(chars) || undefined }) }
   }
 
   public scanBracket() {
@@ -190,8 +187,7 @@ export class Tokenizer {
         else if (char === '」') {
           curly -= 1
           if (curly <= 0) {
-            if (type === TokenType.String)
-              chars = chars.slice(0, -1)
+            if (type === TokenType.String) { chars = chars.slice(0, -1) }
             this.index += 1
             break
           }
@@ -215,8 +211,7 @@ export class Tokenizer {
       this.index++
     }
 
-    if (curly < 0)
-      this.throwUnexpectedToken()
+    if (curly < 0) { this.throwUnexpectedToken() }
 
     this.pushToken({ type, value: chars }, start)
   }

@@ -3,8 +3,9 @@
 // to catch a logic error. The condition shall be fulfilled in normal case.
 // Do NOT use this to enforce a certain condition on any user input.
 export function assert(condition: boolean, message: string): void {
-  if (!condition)
+  if (!condition) {
     throw new Error(`ASSERT: ${message}`)
+  }
 }
 
 export function formatErrorMessage(message: string, values: string[]) {
