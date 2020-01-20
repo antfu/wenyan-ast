@@ -4,7 +4,7 @@ import { Messages } from './messages'
 import { Character } from './character'
 import { Token, TokenDefine, TokenType, Position } from './types'
 import { formatErrorMessage } from './utils'
-import { hanzi2numstr } from './converts/hanzi2num'
+import { hanzi2num } from './converts/hanzi2num'
 
 export interface TokenizerOptions {
   tolerant: boolean
@@ -140,7 +140,7 @@ export class Tokenizer {
       this.index++
     }
     if (chars)
-      this.pushToken({ type: TokenType.Number, value: hanzi2numstr(chars) || undefined })
+      this.pushToken({ type: TokenType.Number, value: hanzi2num(chars) || undefined })
   }
 
   public scanBracket() {

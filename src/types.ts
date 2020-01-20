@@ -26,12 +26,15 @@ export enum TokenType {
   PropertyDeclarion
 }
 
-export interface TokenDefine {
+export type TokenDefine = {
+  type: TokenType.Number
+  value?: number
+} | {
   type: TokenType
   value?: string
 }
 
-export interface Token extends TokenDefine {
+export type Token = TokenDefine & {
   start: Position
   end: Position
 }
