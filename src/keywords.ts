@@ -1,8 +1,8 @@
-import { TokenDefine, TokenType } from './types'
+import { TokenType, TokenDefinition } from './types'
 
 export const KEYWORDS_NUMBERS = '負·又零〇一二三四五六七八九十百千萬億兆京垓秭穰溝澗正載極分釐毫絲忽微纖沙塵埃渺漠'
 
-export const KEYWORDS_ALL: Record<string, TokenDefine> = {
+export const KEYWORDS_ALL: Record<string, TokenDefinition> = {
   吾有: { type: TokenType.Declarion, value: 'private' },
   今有: { type: TokenType.Declarion, value: 'public' },
   有: { type: TokenType.Declarion, value: 'private' },
@@ -117,7 +117,7 @@ export const KEYWORDS_MAX_LENGTH = 5
 
 export const KEYWORDS = new Array(KEYWORDS_MAX_LENGTH)
   .fill(null)
-  .map((): Record<string, TokenDefine> => ({}))
+  .map((): Record<string, TokenDefinition> => ({}))
 
 export const KEYWORDS_TEXTS = Object.keys(KEYWORDS_ALL)
 

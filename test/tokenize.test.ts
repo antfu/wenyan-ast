@@ -5,15 +5,17 @@ describe('tokenize', () => {
   it('empty', () => {
     expect(tokenize('')).toEqual([{
       type: TokenType.EOF,
-      start: {
-        line: 0,
-        char: 0,
-        index: 0,
-      },
-      end: {
-        line: 0,
-        char: 0,
-        index: 0,
+      loc: {
+        start: {
+          line: 0,
+          column: 0,
+          index: 0,
+        },
+        end: {
+          line: 0,
+          column: 0,
+          index: 0,
+        },
       },
     }])
   })

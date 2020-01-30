@@ -2,7 +2,7 @@ import { KEYWORDS_MAX_LENGTH, KEYWORDS, KEYWORDS_NUMBERS } from './keywords'
 import { ErrorHandler } from './error-handler'
 import { Messages } from './messages'
 import { Character } from './character'
-import { Token, TokenDefine, TokenType, Position } from './types'
+import { Token, TokenType, Position, SourceLocation, TokenDefinition } from './types'
 import { formatErrorMessage } from './utils'
 import { hanzi2num } from './converts/hanzi2num'
 
@@ -223,16 +223,19 @@ export class Tokenizer {
     const index = this.index + offest
     return {
       line: this.lineNumber,
+      column: index - this.lineStart,
       index,
-      char: index - this.lineStart,
     }
   }
 
-  private pushToken(define: TokenDefine, start?: Position, end?: Position) {
-    this.tokens.push({
-      ...define,
+  private pushToken(define: TokenDefinition, start?: Position, end?: Position) {
+    const loc: SourceLocation = {
       start: start || this.getPosition(),
       end: end || this.getPosition(),
+    }
+    this.tokens.push({
+      ...define,
+      loc,
     })
   }
 

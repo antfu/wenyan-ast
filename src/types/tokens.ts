@@ -1,3 +1,5 @@
+import { SourceLocation } from './location'
+
 export enum TokenType {
   EOF,
   Answer,
@@ -26,23 +28,19 @@ export enum TokenType {
   PropertyDeclarion
 }
 
-export type TokenDefine = {
+export interface NumberTokenDefinition {
   type: TokenType.Number
   value?: number
-} | {
+}
+
+export interface GeneralTokenDefinition {
   type: TokenType
   value?: string
 }
 
-export type Token = TokenDefine & {
-  start: Position
-  end: Position
-}
+export type TokenDefinition = NumberTokenDefinition | GeneralTokenDefinition
 
-export interface Position {
-  line: number
-  char: number
-  index: number
+export type Token = TokenDefinition & {
+  loc: SourceLocation
+  range?: [number, number]
 }
-
-export type RomanizeSystem = 'none' | 'pinyin' | 'unicode' | 'baxter'
