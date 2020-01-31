@@ -14,7 +14,6 @@ export class Tokenizer {
   readonly options: TokenizerOptions
 
   private readonly length: number
-  errorHandler: ErrorHandler
   index: number
   lineNumber: number
   lineStart: number
@@ -23,6 +22,7 @@ export class Tokenizer {
 
   constructor(
     public readonly source: string,
+    public readonly errorHandler: ErrorHandler = new ErrorHandler(),
     options: Partial<TokenizerOptions> = {},
   ) {
     const {
@@ -31,7 +31,6 @@ export class Tokenizer {
 
     this.options = { tolerant }
 
-    this.errorHandler = new ErrorHandler()
     this.errorHandler.tolerant = tolerant
 
     this.length = source.length
@@ -288,7 +287,7 @@ export class Tokenizer {
     })
   }
 
-  public throwUnexpectedToken(message = Messages.UnexpectedTokenIllegal, ...values: string[]): never {
+  private throwUnexpectedToken(message = Messages.UnexpectedTokenIllegal, ...values: string[]): never {
     return this.errorHandler.throwError(
       this.index,
       this.lineNumber,
@@ -308,5 +307,5 @@ export class Tokenizer {
 }
 
 export function tokenize(src: string, options: Partial<TokenizerOptions> = {}) {
-  return new Tokenizer(src, options).getTokens()
+  return new Tokenizer(src, undefined, options).getTokens()
 }

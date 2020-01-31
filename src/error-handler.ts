@@ -5,7 +5,7 @@ declare class Error {
   public lineNumber: number
   public column: number
   public description: string
-  constructor(message: string);
+  constructor(message: string)
 }
 
 export class ErrorHandler {
@@ -22,11 +22,12 @@ export class ErrorHandler {
   }
 
   tolerate(error: Error): void {
-    if (this.tolerant)
+    if (this.tolerant) {
       this.recordError(error)
-
-    else
+    }
+    else {
       throw error
+    }
   }
 
   constructError(msg: string, column: number): Error {
@@ -60,10 +61,11 @@ export class ErrorHandler {
 
   tolerateError(index: number, line: number, col: number, description: string) {
     const error = this.createError(index, line, col, description)
-    if (this.tolerant)
+    if (this.tolerant) {
       this.recordError(error)
-
-    else
+    }
+    else {
       throw error
+    }
   }
 }
