@@ -1,5 +1,5 @@
 import { parse } from '../src/parse'
-import { VarType, AST, VariableDeclaration } from '../src/types'
+import { VarType, AST, VariableDeclaration, Accessability } from '../src/types'
 
 describe('parse', () => {
   it('empty', () => {
@@ -26,7 +26,7 @@ describe('parse', () => {
               value: 3,
             }),
           ],
-          accessability: 'private',
+          accessability: Accessability.private,
         }),
       ])
   })

@@ -13,7 +13,6 @@ module.exports = {
     'jest',
   ],
   rules: {
-    'space-before-function-paren': 'off',
-    'curly': ['error', 'all'],
+    '@typescript-eslint/no-unused-vars': 'warn'
   },
 }

@@ -1,2 +1,4 @@
 {
+  "prettier.arrowParens": "always",
+  "prettier.semi": false
 }

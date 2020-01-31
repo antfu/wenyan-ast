@@ -7,13 +7,13 @@ import { formatErrorMessage } from './utils'
 import { hanzi2num } from './converts/hanzi2num'
 
 export interface TokenizerOptions {
-  tolerant: boolean
+  errorHandler: ErrorHandler
 }
 
 export class Tokenizer {
-  readonly options: TokenizerOptions
-
+  protected readonly errorHandler: ErrorHandler
   private readonly length: number
+
   index: number
   lineNumber: number
   lineStart: number
@@ -22,16 +22,9 @@ export class Tokenizer {
 
   constructor(
     public readonly source: string,
-    public readonly errorHandler: ErrorHandler = new ErrorHandler(),
-    options: Partial<TokenizerOptions> = {},
+    options: TokenizerOptions,
   ) {
-    const {
-      tolerant = false,
-    } = options
-
-    this.options = { tolerant }
-
-    this.errorHandler.tolerant = tolerant
+    this.errorHandler = options.errorHandler
 
     this.length = source.length
     this.index = 0
@@ -50,7 +43,7 @@ export class Tokenizer {
     let last = this.index - 1
 
     while (!this.eof()) {
-      if (last === this.index) { this.throwUnexpectedToken() }
+      if (last === this.index) this.throwUnexpectedToken()
       last = this.index
 
       const ch = this.source.charCodeAt(this.index)
@@ -90,7 +83,8 @@ export class Tokenizer {
         continue
       }
 
-      if (!this.scanKeywords()) { this.throwUnexpectedToken(Messages.UnexpectedToken, char) }
+      if (!this.scanKeywords())
+        this.throwUnexpectedToken(Messages.UnexpectedToken, char)
     }
 
     // EOF
@@ -136,22 +130,26 @@ export class Tokenizer {
     let chars = ''
     while (true) {
       const char = this.source[this.index]
-      if (!KEYWORDS_NUMBERS.includes(char)) { break }
+
+      if (!KEYWORDS_NUMBERS.includes(char))
+        break
 
       chars += char
       this.index++
     }
-    if (chars) { this.pushToken({ type: TokenType.Number, value: hanzi2num(chars) || undefined }) }
+    if (chars) this.pushToken({ type: TokenType.Number, value: hanzi2num(chars) || undefined })
   }
 
   public scanComment() {
     const start = this.getPosition()
     let chars = this.source.slice(this.index, this.index + 2)
     this.index += 2
+
     if (Character.isPunctuation(this.source.charCodeAt(this.index))) {
       chars += this.source[this.index]
       this.index++
     }
+
     if (Character.isDoubleBracketStart(
       this.source.charCodeAt(this.index),
       this.source.charCodeAt(this.index + 1),
@@ -173,9 +171,8 @@ export class Tokenizer {
     const char = this.source[this.index]
     const next = this.source[this.index + 1]
 
-    if (preseveBrackets) {
+    if (preseveBrackets)
       chars += char
-    }
 
     if (char === '『') {
       type = TokenType.String
@@ -186,9 +183,9 @@ export class Tokenizer {
     else if (char === '「' && next === '「') {
       type = TokenType.String
       curly = 2
-      if (preseveBrackets) {
+      if (preseveBrackets)
         chars += char
-      }
+
       this.index += 2
     }
     else {
@@ -213,9 +210,8 @@ export class Tokenizer {
         continue
       }
 
-      if (preseveBrackets) {
+      if (preseveBrackets)
         chars += char
-      }
 
       if (bracketType === 'single') {
         if (char === '「') {
@@ -224,9 +220,9 @@ export class Tokenizer {
         else if (char === '」') {
           curly -= 1
           if (curly <= 0) {
-            if (type === TokenType.String && !preseveBrackets) {
+            if (type === TokenType.String && !preseveBrackets)
               chars = chars.slice(0, -1)
-            }
+
             this.index += 1
             break
           }
@@ -245,16 +241,14 @@ export class Tokenizer {
         }
       }
 
-      if (!preseveBrackets) {
+      if (!preseveBrackets)
         chars += char
-      }
 
       this.index++
     }
 
-    if (curly < 0) {
+    if (curly < 0)
       this.throwUnexpectedToken()
-    }
 
     return { type, chars, start, end: this.getPosition() }
   }
@@ -289,23 +283,22 @@ export class Tokenizer {
 
   private throwUnexpectedToken(message = Messages.UnexpectedTokenIllegal, ...values: string[]): never {
     return this.errorHandler.throwError(
-      this.index,
-      this.lineNumber,
-      this.index - this.lineStart + 1,
+      this.getPosition(),
       formatErrorMessage(message, values),
     )
   }
 
   private tolerateUnexpectedToken(message = Messages.UnexpectedTokenIllegal, ...values: string[]) {
     this.errorHandler.tolerateError(
-      this.index,
-      this.lineNumber,
-      this.index - this.lineStart + 1,
+      this.getPosition(),
       formatErrorMessage(message, values),
     )
   }
 }
 
 export function tokenize(src: string, options: Partial<TokenizerOptions> = {}) {
-  return new Tokenizer(src, undefined, options).getTokens()
+  const {
+    errorHandler = new ErrorHandler(),
+  } = options
+  return new Tokenizer(src, { errorHandler }).getTokens()
 }

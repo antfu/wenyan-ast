@@ -15,9 +15,8 @@ export function hanzi2unicodeEntry(s: string) {
 }
 
 export function hanzi2pinyin(a: string, system: RomanizeSystem = 'pinyin') {
-  if (system === 'unicode') {
+  if (system === 'unicode')
     return hanzi2unicodeEntry(a)
-  }
 
   const tab = ({ pinyin, baxter } as any)[system]
   let s = ''
@@ -28,9 +27,8 @@ export function hanzi2pinyin(a: string, system: RomanizeSystem = 'pinyin') {
       .toUpperCase()
     let r = tab[key]
 
-    if (r === undefined) {
+    if (r === undefined)
       r = '_'
-    }
 
     s += r.split(' ')[0]
   }

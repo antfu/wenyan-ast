@@ -9,16 +9,13 @@ export interface Program extends Node {
   body: Statement[]
 }
 
-export interface Statement extends Node {
-
-}
-
 export const enum VarType {
   Number = 'number',
   String = 'string',
   Array = 'array',
   Object = 'object',
   Boolean = 'bool',
+  Function = 'function',
   Auto = 'auto',
 }
 
@@ -27,13 +24,27 @@ export interface ASTValue extends Node {
   value: string | number | boolean
 }
 
-export interface VariableDeclaration extends Statement {
+export enum Accessability {
+  public = 'public',
+  private = 'private'
+}
+
+export interface VariableDeclaration extends Node {
   type: 'VariableDeclaration'
   varType: VarType
   count: number
   names: string[]
   values: ASTValue[]
+  accessability: Accessability
+}
+
+export interface FunctionDeclaration extends Node {
+  type: 'FunctionDeclaration'
+  body: Statement[]
+  name: string
   accessability: 'public' | 'private'
 }
 
 export type AST = Program
+export type Statement = VariableDeclaration | FunctionDeclaration
+export type ASTScope = Program | FunctionDeclaration

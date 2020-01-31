@@ -1,22 +1,31 @@
-import { Token, TokenType, AST, VariableDeclaration, VarType, Statement } from './types'
+import { Token, TokenType, AST, VariableDeclaration, VarType, ASTScope } from './types'
 import { Tokenizer } from './tokenize'
 import { Messages } from './messages'
 import { ErrorHandler } from './error-handler'
 import { formatErrorMessage } from './utils'
+
+export interface ParseOptions {
+  errorHandler?: ErrorHandler
+}
 
 export class Parser {
   tokens: Token[]
   index: number
   ast: AST
 
-  private length: number
-  private scope: { body: Statement[] }
+  protected tokenier: Tokenizer
+  protected length: number
+  protected scope: ASTScope
 
   constructor(
     public readonly source: string,
     public readonly errorHandler: ErrorHandler = new ErrorHandler(),
   ) {
-    this.tokens = new Tokenizer(this.source, this.errorHandler).getTokens()
+    this.tokenier = new Tokenizer(this.source, {
+      errorHandler: this.errorHandler,
+    })
+    this.tokens = this.tokenier.getTokens()
+
     this.preprocessTokens()
     this.length = this.tokens.length - 1 // ignore the EOF token
 
@@ -116,15 +125,13 @@ export class Parser {
   }
 
   private assert(bool: boolean, message = Messages.UnexpectedTokenIllegal) {
-    if (!bool) {
+    if (!bool)
       this.throwUnexpectedToken(message)
-    }
   }
 
   private typeassert(token: Token, type: TokenType, message = Messages.UnexpectedTokenIllegal) {
-    if (token.type !== type) {
+    if (token.type !== type)
       this.throwUnexpectedToken(message, token.loc)
-    }
   }
 
   public getAST() {
@@ -133,14 +140,13 @@ export class Parser {
 
   private throwUnexpectedToken(message = Messages.UnexpectedTokenIllegal, loc = this.current.loc, ...values: string[]): never {
     return this.errorHandler.throwError(
-      loc.start.index,
-      loc.start.line,
-      loc.start.column,
+      loc.start,
       formatErrorMessage(message, values),
     )
   }
 }
 
-export function parse(src: string) {
-  return new Parser(src).getAST()
+export function parse(src: string, options: ParseOptions = {}) {
+  const { errorHandler } = options
+  return new Parser(src, errorHandler).getAST()
 }
