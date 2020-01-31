@@ -81,4 +81,36 @@ describe('tokenize', () => {
         expect.objectContaining({ type: TokenType.EOF }),
       ])
   })
+
+  it('comment 1', () => {
+    expect(tokenize('批曰『甲』'))
+      .toEqual([
+        expect.objectContaining({ type: TokenType.Comment, value: '批曰『甲』' }),
+        expect.objectContaining({ type: TokenType.EOF }),
+      ])
+  })
+
+  it('comment 2', () => {
+    expect(tokenize('批曰「「甲」」'))
+      .toEqual([
+        expect.objectContaining({ type: TokenType.Comment, value: '批曰「「甲」」' }),
+        expect.objectContaining({ type: TokenType.EOF }),
+      ])
+  })
+
+  it('multi-line comment', () => {
+    const comment = `批曰。「「
+    甲
+    乙
+    丙
+    丁
+    」」`
+    expect(tokenize(`曰「「甲」」${comment}`))
+      .toEqual([
+        expect.objectContaining({ type: TokenType.Assign }),
+        expect.objectContaining({ type: TokenType.String, value: '甲' }),
+        expect.objectContaining({ type: TokenType.Comment, value: comment }),
+        expect.objectContaining({ type: TokenType.EOF }),
+      ])
+  })
 })

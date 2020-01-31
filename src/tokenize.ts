@@ -1,4 +1,4 @@
-import { KEYWORDS_MAX_LENGTH, KEYWORDS, KEYWORDS_NUMBERS } from './keywords'
+import { KEYWORDS_MAX_LENGTH, KEYWORDS, KEYWORDS_NUMBERS, KEYWORDS_COMMENT } from './keywords'
 import { ErrorHandler } from './error-handler'
 import { Messages } from './messages'
 import { Character } from './character'
@@ -84,7 +84,12 @@ export class Tokenizer {
         continue
       }
 
-      // TODO: comments
+      const twoChars = this.source.slice(this.index, this.index + 2)
+
+      if (KEYWORDS_COMMENT.includes(twoChars)) {
+        this.scanComment()
+        continue
+      }
 
       if (!this.scanKeywords()) { this.throwUnexpectedToken(Messages.UnexpectedToken, char) }
     }
@@ -140,7 +145,26 @@ export class Tokenizer {
     if (chars) { this.pushToken({ type: TokenType.Number, value: hanzi2num(chars) || undefined }) }
   }
 
-  public scanBracket() {
+  public scanComment() {
+    const start = this.getPosition()
+    let chars = this.source.slice(this.index, this.index + 2)
+    this.index += 2
+    if (Character.isPunctuation(this.source.charCodeAt(this.index))) {
+      chars += this.source[this.index]
+      this.index++
+    }
+    if (Character.isDoubleBracketStart(
+      this.source.charCodeAt(this.index),
+      this.source.charCodeAt(this.index + 1),
+    )) {
+      const { chars: text } = this.scanBracketPair(true)
+      chars += text
+    }
+
+    this.pushToken({ type: TokenType.Comment, value: chars }, start)
+  }
+
+  private scanBracketPair(preseveBrackets = false) {
     let curly = 1
     let chars = ''
     let type: TokenType = TokenType.Identifier
@@ -149,6 +173,10 @@ export class Tokenizer {
     const start = this.getPosition()
     const char = this.source[this.index]
     const next = this.source[this.index + 1]
+
+    if (preseveBrackets) {
+      chars += char
+    }
 
     if (char === '『') {
       type = TokenType.String
@@ -159,6 +187,9 @@ export class Tokenizer {
     else if (char === '「' && next === '「') {
       type = TokenType.String
       curly = 2
+      if (preseveBrackets) {
+        chars += char
+      }
       this.index += 2
     }
     else {
@@ -170,14 +201,21 @@ export class Tokenizer {
       const char = this.source[this.index]
       const ch = this.source.charCodeAt(this.index)
 
+      // escaping back-slash
       if (char === '\\') {
         chars += this.source[this.index + 1]
         this.index += 2
         continue
       }
+
       if (Character.isLineTerminator(ch)) {
+        chars += char
         this.newLine()
         continue
+      }
+
+      if (preseveBrackets) {
+        chars += char
       }
 
       if (bracketType === 'single') {
@@ -187,7 +225,9 @@ export class Tokenizer {
         else if (char === '」') {
           curly -= 1
           if (curly <= 0) {
-            if (type === TokenType.String) { chars = chars.slice(0, -1) }
+            if (type === TokenType.String && !preseveBrackets) {
+              chars = chars.slice(0, -1)
+            }
             this.index += 1
             break
           }
@@ -206,13 +246,22 @@ export class Tokenizer {
         }
       }
 
-      chars += char
+      if (!preseveBrackets) {
+        chars += char
+      }
 
       this.index++
     }
 
-    if (curly < 0) { this.throwUnexpectedToken() }
+    if (curly < 0) {
+      this.throwUnexpectedToken()
+    }
 
+    return { type, chars, start, end: this.getPosition() }
+  }
+
+  public scanBracket() {
+    const { type, chars, start } = this.scanBracketPair()
     this.pushToken({ type, value: chars }, start)
   }
 

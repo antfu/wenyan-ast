@@ -21,4 +21,8 @@ export const Character = {
   isBracketStart(cp: number) {
     return (cp === 0x300C) || (cp === 0x300E) // 「『
   },
+
+  isDoubleBracketStart(cp: number, next: number) {
+    return (cp === 0x300E) || ((cp === 0x300C) && (next === 0x300C)) // 『|「「
+  },
 }

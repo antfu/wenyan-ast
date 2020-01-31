@@ -113,6 +113,8 @@ export const KEYWORDS_ALL: Record<string, TokenDefinition> = {
   批曰: { type: TokenType.Comment },
 }
 
+export const KEYWORDS_COMMENT = ['注曰', '疏曰', '批曰']
+
 export const KEYWORDS_MAX_LENGTH = 5
 
 export const KEYWORDS = new Array(KEYWORDS_MAX_LENGTH)
