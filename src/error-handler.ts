@@ -47,31 +47,31 @@ export class ErrorHandler {
     return error
   }
 
-  createError(pos: Position, description: string): Error {
-    const { index, line, column } = pos
-    const msg = `Line ${line}: ${description}`
-    const error = this.constructError(msg, column)
-    error.index = index
-    error.lineNumber = line
-    error.description = description
+  createError(pos?: Position, description = ''): Error {
+    let error
+    if (pos) {
+      const { index, line, column } = pos
+      const msg = `Line ${line}: ${description}`
+      error = this.constructError(msg, column)
+      error.index = index
+      error.lineNumber = line
+      error.description = description
+    }
+    else {
+      error = new Error(description)
+    }
+
+    // @ts-ignore
+    Error.captureStackTrace(error, this)
     return error
   }
 
   throwError(pos?: Position, description = ''): never {
-    if (pos)
-      throw this.createError(pos, description)
-
-    else
-      throw new Error(description)
+    throw this.createError(pos, description)
   }
 
   tolerateError(pos?: Position, description = '') {
-    let error
-    if (pos)
-      error = this.createError(pos, description)
-
-    else
-      error = new Error(description)
+    const error = this.createError(pos, description)
 
     if (this.tolerant)
       this.recordError(error)

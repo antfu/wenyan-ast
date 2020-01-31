@@ -5,7 +5,8 @@ import { ErrorHandler } from './error-handler'
 import { formatErrorMessage } from './utils'
 
 export interface ParseOptions {
-  errorHandler?: ErrorHandler
+  errorHandler: ErrorHandler
+  sourcemap: boolean
 }
 
 export class Parser {
@@ -13,14 +14,18 @@ export class Parser {
   index: number
   ast: AST
 
+  readonly sourcemap: boolean
   protected tokenier: Tokenizer
   protected length: number
   protected scope: ASTScope
+  protected readonly errorHandler: ErrorHandler
 
   constructor(
     public readonly source: string,
-    public readonly errorHandler: ErrorHandler = new ErrorHandler(),
+    options: Partial<ParseOptions> = {},
   ) {
+    this.errorHandler = options.errorHandler || new ErrorHandler()
+    this.sourcemap = options.sourcemap ?? true
     this.tokenier = new Tokenizer(this.source, {
       errorHandler: this.errorHandler,
     })
@@ -33,10 +38,12 @@ export class Parser {
     this.ast = {
       type: 'Program',
       body: [],
-      loc: {
-        start: this.tokens[0].loc.start,
-        end: this.tokens.slice(-1)[0].loc.end,
-      },
+      loc: this.sourcemap
+        ? {
+          start: this.tokens[0].loc.start,
+          end: this.tokens.slice(-1)[0].loc.end,
+        }
+        : undefined,
     }
     this.scope = this.ast
   }
@@ -94,17 +101,18 @@ export class Parser {
       count,
       values: [],
       names: [],
-      loc: {
-        ...this.current.loc,
-      },
       accessability: this.current.value as VariableDeclaration['accessability'],
     }
+
+    if (this.sourcemap)
+      node.loc = { ...this.current.loc }
+
     this.index += 3
     while (!this.eof && this.current.type === TokenType.Assign) {
       node.values.push({
         type: 'Value',
         value: this.next.value as string,
-        loc: this.next.loc,
+        loc: this.sourcemap ? this.next.loc : undefined,
       })
       this.index += 2
     }
@@ -113,11 +121,7 @@ export class Parser {
       this.index += 2
     }
     while (!this.eof && this.current.type === TokenType.Assign) {
-      node.values.push({
-        type: 'Value',
-        value: this.next.value as string,
-        loc: this.next.loc,
-      })
+      node.names.push(this.next.value as string)
       this.index += 2
     }
 
@@ -146,7 +150,6 @@ export class Parser {
   }
 }
 
-export function parse(src: string, options: ParseOptions = {}) {
-  const { errorHandler } = options
-  return new Parser(src, errorHandler).getAST()
+export function parse(src: string, options: Partial<ParseOptions> = {}) {
+  return new Parser(src, options).getAST()
 }

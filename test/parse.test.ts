@@ -1,33 +1,51 @@
 import { parse } from '../src/parse'
-import { VarType, AST, VariableDeclaration, Accessability } from '../src/types'
+import { VarType, VariableDeclaration, Accessability, Program } from '../src/types'
+
+const p = (s: string) => parse(s, { sourcemap: false })
 
 describe('parse', () => {
   it('empty', () => {
-    expect(parse(''))
-      .toEqual(
-        expect.objectContaining<AST>({
-          type: 'Program',
-          body: [],
-        }),
-      )
+    expect(p('')).toEqual<Program>({
+      type: 'Program',
+      body: [],
+    })
   })
 
   it('var a = 3', () => {
-    expect(parse('吾有一數。曰三。名之曰「甲」。').body)
-      .toEqual([
-        expect.objectContaining<VariableDeclaration>({
-          type: 'VariableDeclaration',
-          count: 1,
-          varType: VarType.Number,
-          names: ['甲'],
-          values: [
-            expect.objectContaining({
-              type: 'Value',
-              value: 3,
-            }),
-          ],
-          accessability: Accessability.private,
-        }),
-      ])
+    expect(p('吾有一數。曰三。名之曰「甲」。').body).toEqual([{
+      type: 'VariableDeclaration',
+      count: 1,
+      varType: VarType.Number,
+      names: ['甲'],
+      values: [{
+        type: 'Value',
+        value: 3,
+      }],
+      accessability: Accessability.private,
+    }])
+  })
+
+  it('multiple vars', () => {
+    expect(p('吾有三數。曰一。曰三。曰五。名之曰「甲」曰「乙」曰「丙」。').body).toEqual<VariableDeclaration[]>([
+      {
+        type: 'VariableDeclaration',
+        count: 3,
+        varType: VarType.Number,
+        names: ['甲', '乙', '丙'],
+        values: [{
+          type: 'Value',
+          value: 1,
+        },
+        {
+          type: 'Value',
+          value: 3,
+        },
+        {
+          type: 'Value',
+          value: 5,
+        }],
+        accessability: Accessability.private,
+      },
+    ])
   })
 })
