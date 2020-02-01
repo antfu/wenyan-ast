@@ -48,6 +48,7 @@ export interface FunctionDeclaration extends Node {
   body: Statement[]
   args: FunctionArgument[]
   name?: string
+  accessability: Accessability
 }
 
 export type AST = Program

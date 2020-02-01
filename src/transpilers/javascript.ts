@@ -1,5 +1,4 @@
 /* eslint-disable no-case-declarations */
-import { start } from 'repl'
 import { AST, ASTScope, VarType, Accessability } from '../types'
 import { Transplier } from './base'
 
@@ -14,11 +13,15 @@ export class JavascriptTranspiler extends Transplier {
     return str.replace(/`/g, '`')
   }
 
+  private getAccessDecaleration(name: string, accessability: Accessability) {
+    return accessability === Accessability.public
+      ? `let ${name}=this.${name}=`
+      : `let ${name}=`
+  }
+
   private transpileScope(scope: ASTScope) {
     let code = ''
     const strayVars = []
-    let prevFunctionName: string | null = null
-    let prevFunctionAccess: Accessability | null = null
     let prevObjectName: string | null = null
     const prevObjectAccess: Accessability | null = null
 
@@ -45,8 +48,6 @@ export class JavascriptTranspiler extends Transplier {
                   break
                 case VarType.Function:
                   value = '()=>0'
-                  prevFunctionName = name
-                  prevFunctionAccess = s.accessability
                   break
                 case VarType.Object:
                   value = '{}'
@@ -64,10 +65,7 @@ export class JavascriptTranspiler extends Transplier {
             if (s.varType === VarType.String)
               value = `\`${this.escapeQuote(value.toString())}\``
 
-            const declaration = s.accessability === Accessability.public
-              ? `var ${name} = this.`
-              : 'var '
-            code += `${declaration}${name}=${value};`
+            code += `${this.getAccessDecaleration(name, s.accessability)}${value};`
           }
           break
 
@@ -78,10 +76,11 @@ export class JavascriptTranspiler extends Transplier {
 
           let starts = ''
           let ends = ''
+
           if (s.args.length > 0) {
             s.args.forEach((arg, i) => {
               if (i === 0)
-                starts += `function ${name}(${arg.name}){`
+                starts += `function (${arg.name}){`
               else
                 starts += `return (${arg.name})=>{`
               ends += '};'
@@ -91,7 +90,7 @@ export class JavascriptTranspiler extends Transplier {
             starts = 'function () {'
             ends = '};'
           }
-          code += starts + this.transpileScope(s) + ends
+          code += this.getAccessDecaleration(name, s.accessability) + starts + this.transpileScope(s) + ends
           break
 
         default:

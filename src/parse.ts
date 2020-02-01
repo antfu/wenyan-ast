@@ -182,6 +182,7 @@ export class Parser {
       type: 'FunctionDeclaration',
       body: [],
       args: [],
+      accessability: Accessability.private,
     }
 
     this.index += 1
@@ -211,6 +212,7 @@ export class Parser {
 
     if (lastAST?.type === 'VariableDeclaration' && lastAST.varType === VarType.Function && lastAST.count === 1) {
       node.name = lastAST.names[0]
+      node.accessability = lastAST.accessability
       this.popLastAST()
     }
 
