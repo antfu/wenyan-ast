@@ -22,8 +22,6 @@ export class JavascriptTranspiler extends Transplier {
   private transpileScope(scope: ASTScope) {
     let code = ''
     const strayVars = []
-    let prevObjectName: string | null = null
-    const prevObjectAccess: Accessability | null = null
 
     for (const s of scope.body) {
       switch (s.type) {
@@ -51,8 +49,6 @@ export class JavascriptTranspiler extends Transplier {
                   break
                 case VarType.Object:
                   value = '{}'
-                  prevObjectName = name
-                  prevObjectName = s.accessability
                   break
                 case VarType.Auto:
                   value = 'undefined'
