@@ -1,4 +1,4 @@
-import { Token, TokenType, AST, VariableDeclaration, VarType, ASTScope } from './types'
+import { Token, TokenType, AST, VariableDeclaration, VarType, ASTScope, Accessability, FunctionDeclaration, Program, Statement } from './types'
 import { Tokenizer } from './tokenize'
 import { Messages } from './messages'
 import { ErrorHandler } from './error-handler'
@@ -17,8 +17,8 @@ export class Parser {
   readonly sourcemap: boolean
   protected tokenier: Tokenizer
   protected length: number
-  protected scope: ASTScope
   protected readonly errorHandler: ErrorHandler
+  protected scopeStack: ASTScope[] = []
 
   constructor(
     public readonly source: string,
@@ -45,7 +45,6 @@ export class Parser {
         }
         : undefined,
     }
-    this.scope = this.ast
   }
 
   get eof() {
@@ -64,6 +63,18 @@ export class Parser {
     return this.tokens[this.index + 2]
   }
 
+  private get next3() {
+    return this.tokens[this.index + 3]
+  }
+
+  private get next4() {
+    return this.tokens[this.index + 4]
+  }
+
+  private get next5() {
+    return this.tokens[this.index + 5]
+  }
+
   private get prev() {
     return this.tokens[this.index - 2]
   }
@@ -72,20 +83,41 @@ export class Parser {
     return this.tokens[this.index - 1]
   }
 
+  protected get scope() {
+    return this.scopeStack[0]
+  }
+
   private preprocessTokens() {
     this.tokens = this.tokens.filter(t => t.type !== TokenType.Punctuations)
   }
 
-  private parse() {
+  protected pushScope(scope: ASTScope) {
+    this.scopeStack.unshift(scope)
+  }
+
+  protected popScope() {
+    return this.scopeStack.shift()
+  }
+
+  private parseScope(scope: ASTScope, shouldExit = () => false) {
     // console.log(this.tokens.map(i => i.type))
-    while (!this.eof) {
+    this.pushScope(scope)
+    while (!this.eof && !shouldExit()) {
       if (this.current.type === TokenType.Declarion) {
         this.scanDeclarion()
         continue
       }
+      if (this.current.type === TokenType.PropertyDeclarion) {
+        this.scanPropertyDeclarion()
+        continue
+      }
+      if (this.current.type === TokenType.Control && this.current.value === 'functionStart') {
+        this.scanFunctionDeclarion()
+        continue
+      }
       this.index++
     }
-    return this.ast
+    return this.popScope()
   }
 
   private scanDeclarion() {
@@ -101,7 +133,7 @@ export class Parser {
       count,
       values: [],
       names: [],
-      accessability: this.current.value as VariableDeclaration['accessability'],
+      accessability: this.current.value as Accessability,
     }
 
     if (this.sourcemap)
@@ -125,7 +157,78 @@ export class Parser {
       this.index += 2
     }
 
-    this.scope.body.push(node)
+    this.pushAST(node)
+  }
+
+  private scanPropertyDeclarion() {
+    /*
+    this.typeassert(this.next, ['lit'], 'property key')
+    this.typeassert(this.next3, ['type'], 'property type')
+    this.typeassert(this.next4, ['assgn'], 'property value')
+    const x: Prop = {
+      op: 'prop',
+      type: gettok(i + 3, 1),
+      name: tokens[i + 1][1],
+      value: tokens[i + 5],
+      pos,
+    }
+    i += 6
+    asc.push(x)
+    */
+  }
+
+  private scanFunctionDeclarion() {
+    const node: FunctionDeclaration = {
+      type: 'FunctionDeclaration',
+      body: [],
+      args: [],
+    }
+
+    this.index += 1
+    if (this.current.value === 'functionArgs') {
+      this.index += 1
+      // @ts-ignore
+      while (this.current.value !== 'functionBody') {
+        this.typeassert(this.current, TokenType.Number, 'argument count')
+        this.typeassert(this.next, TokenType.Type, 'argument type')
+        const varType = this.next.value as VarType
+        const count = Number(this.current.value)
+        this.assert(Number.isSafeInteger(count) && count > 0, `Invalid argument count ${count}`)
+        this.index += 2
+        for (let j = 0; j < count; j++) {
+          this.typeassert(this.current, TokenType.Assign, 'another argument')
+          this.typeassert(this.next, TokenType.Identifier, 'argument')
+          node.args.push({
+            name: this.next.value as string,
+            varType,
+          })
+          this.index += 2
+        }
+      }
+    }
+
+    const lastAST = this.lastASTNode
+
+    if (lastAST?.type === 'VariableDeclaration' && lastAST.varType === VarType.Function && lastAST.count === 1) {
+      node.name = lastAST.names[0]
+      this.popLastAST()
+    }
+
+    this.parseScope(node, () => this.current.value === 'functionEnd')
+
+    this.pushAST(node)
+  }
+
+  private get lastASTNode(): Statement | undefined {
+    return this.scope.body.slice(-1)[0]
+  }
+
+  private popLastAST() {
+    return this.scope.body.pop()
+  }
+
+  private pushAST(statement: Statement) {
+    this.scope.body.push(statement)
   }
 
   private assert(bool: boolean, message = Messages.UnexpectedTokenIllegal) {
@@ -139,7 +242,7 @@ export class Parser {
   }
 
   public getAST() {
-    return this.parse()
+    return this.parseScope(this.ast) as AST
   }
 
   private throwUnexpectedToken(message = Messages.UnexpectedTokenIllegal, loc = this.current.loc, ...values: string[]): never {

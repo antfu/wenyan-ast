@@ -24,6 +24,11 @@ export interface ASTValue extends Node {
   value: string | number | boolean
 }
 
+export interface FunctionArgument {
+  name: string
+  varType: VarType
+}
+
 export enum Accessability {
   public = 'public',
   private = 'private'
@@ -41,8 +46,8 @@ export interface VariableDeclaration extends Node {
 export interface FunctionDeclaration extends Node {
   type: 'FunctionDeclaration'
   body: Statement[]
-  name: string
-  accessability: 'public' | 'private'
+  args: FunctionArgument[]
+  name?: string
 }
 
 export type AST = Program

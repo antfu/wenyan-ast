@@ -7,6 +7,7 @@ import { Transplier } from './transpilers/base'
 export interface CompileOptions {
   lang: 'js'
   errorHandler: ErrorHandler
+  sourcemap: boolean
 }
 
 export class Compiler {
@@ -21,15 +22,17 @@ export class Compiler {
   ) {
     const {
       lang = 'js',
+      sourcemap = true,
       errorHandler = new ErrorHandler(),
     } = options
 
     this.options = {
       lang,
       errorHandler,
+      sourcemap,
     }
 
-    this.ast = parse(source, { errorHandler })
+    this.ast = parse(source, { errorHandler, sourcemap })
     const Transpiler = transpilers[lang]
     this.transpiler = new Transpiler({ errorHandler })
 

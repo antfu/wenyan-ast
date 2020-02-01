@@ -1,3 +1,5 @@
+/* eslint-disable no-case-declarations */
+import { start } from 'repl'
 import { AST, ASTScope, VarType, Accessability } from '../types'
 import { Transplier } from './base'
 
@@ -6,6 +8,10 @@ export class JavascriptTranspiler extends Transplier {
 
   transpile(ast: AST): string {
     return this.transpileScope(ast)
+  }
+
+  private escapeQuote(str: string) {
+    return str.replace(/`/g, '`')
   }
 
   private transpileScope(scope: ASTScope) {
@@ -55,14 +61,37 @@ export class JavascriptTranspiler extends Transplier {
                   break
               }
             }
+            if (s.varType === VarType.String)
+              value = `\`${this.escapeQuote(value.toString())}\``
+
             const declaration = s.accessability === Accessability.public
               ? `var ${name} = this.`
               : 'var '
             code += `${declaration}${name}=${value};`
           }
           break
+
         case 'FunctionDeclaration':
-          this.throwError(s.loc?.start, 'No Implementation for %0', s.type)
+          let name = s.name
+          if (name === undefined)
+            name = this.nextVar()
+
+          let starts = ''
+          let ends = ''
+          if (s.args.length > 0) {
+            s.args.forEach((arg, i) => {
+              if (i === 0)
+                starts += `function ${name}(${arg.name}){`
+              else
+                starts += `return (${arg.name})=>{`
+              ends += '};'
+            })
+          }
+          else {
+            starts = 'function () {'
+            ends = '};'
+          }
+          code += starts + this.transpileScope(s) + ends
           break
 
         default:
