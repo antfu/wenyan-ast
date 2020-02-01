@@ -80,14 +80,14 @@ export class JavascriptTranspiler extends Transplier {
           if (s.args.length > 0) {
             s.args.forEach((arg, i) => {
               if (i === 0)
-                starts += `function (${arg.name}){`
+                starts += `function(${arg.name}){`
               else
-                starts += `return (${arg.name})=>{`
+                starts += `return function(${arg.name}){`
               ends += '};'
             })
           }
           else {
-            starts = 'function () {'
+            starts = 'function(){'
             ends = '};'
           }
           code += this.getAccessDecaleration(name, s.accessability) + starts + this.transpileScope(s) + ends

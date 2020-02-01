@@ -120,6 +120,7 @@ export class Parser {
     return this.popScope()
   }
 
+  // 吾有三數。曰一。曰三。曰五。名之曰「甲」曰「乙」曰「丙」。
   private scanDeclarion() {
     this.typeassert(this.next, TokenType.Number, 'variable count')
     this.typeassert(this.next2, TokenType.Type, 'variable type')
@@ -177,6 +178,7 @@ export class Parser {
     */
   }
 
+  // 吾有一術。名之曰「甲」。欲行是術。必先得二數。曰「乙」。曰「丙」。是術曰。
   private scanFunctionDeclarion() {
     const node: FunctionDeclaration = {
       type: 'FunctionDeclaration',
