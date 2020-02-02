@@ -1,5 +1,5 @@
 /* eslint-disable no-case-declarations */
-import { AST, ASTScope, VarType, Accessability } from '../types'
+import { AST, ASTScope, VarType, Accessability, Condition, IfStatement } from '../types'
 import { Transplier } from './base'
 
 export class JavascriptTranspiler extends Transplier {
@@ -17,6 +17,46 @@ export class JavascriptTranspiler extends Transplier {
     return accessability === Accessability.public
       ? `let ${name}=this.${name}=`
       : `let ${name}=`
+  }
+
+  private transConditions(conditions: Condition | Condition[]): string {
+    if (!Array.isArray(conditions))
+      conditions = [conditions]
+
+    // eslint-disable-next-line array-callback-return
+    return conditions.map((i) => {
+      if (i === 'ans') {
+        return this.currentVar()
+      }
+      else if (typeof i === 'boolean') {
+        return i.toString()
+      }
+      else if (i.type === 'Identifier') {
+        return i.name
+      }
+      else if (i.type === 'UnaryCondition') {
+        const op = '!'
+        return `${op}(${this.transConditions(i.union)})`
+      }
+      else if (i.type === 'BinaryCondition') {
+        return `(${this.transConditions(i.left)})${i.operator}(${this.transConditions(i.right)})`
+      }
+      else {
+        this.errorHandler.throwError()
+      }
+    })
+      .join(' ')
+  }
+
+  private transIf(s: IfStatement) {
+    let code = ''
+    if (s.condition != null)
+      code = `if(${this.transConditions(s.condition)}){${this.transpileScope(s)}}`
+    else
+      code = `{${this.transpileScope(s)}}`
+    if (s.else)
+      code += `else ${this.transIf(s.else)}`
+    return code
   }
 
   private transpileScope(scope: ASTScope) {
@@ -87,6 +127,10 @@ export class JavascriptTranspiler extends Transplier {
             ends = '};'
           }
           code += this.getAccessDecaleration(name, s.accessability) + starts + this.transpileScope(s) + ends
+          break
+
+        case 'IfStatement':
+          code += this.transIf(s)
           break
 
         default:

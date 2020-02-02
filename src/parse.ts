@@ -111,11 +111,14 @@ export class Parser {
         this.pushAST(this.scanPropertyDeclarion())
         continue
       }
-      if (this.current.type === TokenType.Control && this.current.value === 'functionStart') {
+      if (this.current.value === 'functionStart') {
         this.pushAST(this.scanFunctionDeclarion())
         continue
       }
-      if (this.current.type === TokenType.Control && this.current.value === 'if') {
+      if (this.current.value === 'if'
+        || this.current.value === 'ifTrue'
+        || this.current.value === 'ifFalse'
+      ) {
         this.pushAST(this.scanIfStatement())
         continue
       }
@@ -230,20 +233,45 @@ export class Parser {
   }
 
   private scanIfStatement() {
-    const conditionsTokens = []
-    this.index += 1
-    while (!this.eof && this.current.value !== 'conj') {
-      conditionsTokens.push(this.current)
+    let condition: Condition | undefined
+
+    if (this.current.value === 'if' || this.current.value === 'elseIf') {
+      const conditionsTokens = []
       this.index += 1
+      // @ts-ignore
+      while (!this.eof && this.current.value !== 'conj') {
+        conditionsTokens.push(this.current)
+        this.index += 1
+      }
+      condition = this.parseConditions(conditionsTokens)
     }
-    console.log('IF', conditionsTokens)
+    else if (this.current.value === 'ifTrue') {
+      condition = 'ans'
+    }
+    else if (this.current.value === 'ifFalse') {
+      condition = {
+        type: 'UnaryCondition',
+        operator: 'not',
+        union: 'ans',
+      }
+    }
+    else if (this.current.value === 'else') {
+      condition = true
+    }
+
     this.index += 1
+
     const node: IfStatement = {
       type: 'IfStatement',
       body: [],
-      condition: this.parseConditions(conditionsTokens),
+      condition,
     }
-    this.parseScope(node, () => this.current.value === 'else' || this.current.value === 'end')
+
+    this.parseScope(node, () =>
+      this.current.value === 'else'
+      || this.current.value === 'elseIf'
+      || this.current.value === 'end',
+    )
 
     if (this.current.value === 'else')
       node.else = this.scanIfStatement()
@@ -264,10 +292,13 @@ export class Parser {
     if (tokens.length === 2) {
       this.typeassert(tokens[0], TokenType.Operator)
       return {
+        type: 'UnaryCondition',
         operator: 'not',
         union: this.parseConditions([tokens[1]]),
       }
     }
+
+    // TOOD: binary
 
     this.throwUnexpectedToken()
   }

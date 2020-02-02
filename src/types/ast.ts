@@ -51,28 +51,35 @@ export interface FunctionDeclaration extends Node {
   accessability: Accessability
 }
 
+export type UnaryCondition = {
+  type: 'UnaryCondition'
+  operator: 'not'
+  union: Condition
+}
+
+export type BinaryCondition = {
+  type: 'BinaryCondition'
+  left: Condition
+  operator: '&&' | '||'
+  right: Condition
+}
+
 export type Condition =
-  | {
-    left: Condition
-    operator: 'and' | 'or'
-    right: Condition
-  }
-  | {
-    operator: 'not'
-    union: Condition
-  }
+  | UnaryCondition
+  | BinaryCondition
   | boolean
   | Identifier
+  | 'ans'
 
 export interface Identifier {
-  type: Identifier
+  type: 'Identifier'
   name: string
   varType: VarType
 }
 
 export interface IfStatement extends Node {
   type: 'IfStatement'
-  condition: Condition
+  condition?: Condition
   body: Statement[]
   else?: IfStatement
 }
