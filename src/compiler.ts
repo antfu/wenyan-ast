@@ -1,7 +1,7 @@
 import transpilers from './transpilers'
 import { ErrorHandler } from './error-handler'
-import { parse } from './parse'
-import { AST } from './types'
+import { Parser } from './parse'
+import { AST, Token } from './types'
 import { Transplier } from './transpilers/base'
 
 export interface CompileOptions {
@@ -13,6 +13,7 @@ export interface CompileOptions {
 export class Compiler {
   readonly options: CompileOptions
   readonly ast: AST
+  readonly tokens: Token[]
   readonly transpiler: Transplier
   readonly compiled: string
 
@@ -32,7 +33,10 @@ export class Compiler {
       sourcemap,
     }
 
-    this.ast = parse(source, { errorHandler, sourcemap })
+    const parser = new Parser(source, { errorHandler, sourcemap })
+
+    this.ast = parser.getAST()
+    this.tokens = parser.tokens
     const Transpiler = transpilers[lang]
     this.transpiler = new Transpiler({ errorHandler })
 

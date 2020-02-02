@@ -1,12 +1,12 @@
-import { TokenType, TokenDefinition } from './types'
+import { TokenType } from './types'
 
 export const KEYWORDS_NUMBERS = '負·又零〇一二三四五六七八九十百千萬億兆京垓秭穰溝澗正載極分釐毫絲忽微纖沙塵埃渺漠'
 
-export const KEYWORDS_ALL: Record<string, TokenDefinition> = {
+export const KEYWORDS_ALL = {
   吾有: { type: TokenType.Declarion, value: 'private' },
   今有: { type: TokenType.Declarion, value: 'public' },
   有: { type: TokenType.Declarion, value: 'private' },
-  物之: { type: TokenType.PropertyDeclarion },
+  物之: { type: TokenType.PropertyDeclarion, value: undefined },
 
   數: { type: TokenType.Type, value: 'number' },
   列: { type: TokenType.Type, value: 'array' },
@@ -16,10 +16,10 @@ export const KEYWORDS_ALL: Record<string, TokenDefinition> = {
   物: { type: TokenType.Type, value: 'object' },
   元: { type: TokenType.Type, value: 'any' },
 
-  曰: { type: TokenType.Assign },
+  曰: { type: TokenType.Assign, value: undefined },
 
   書之: { type: TokenType.Builtin, value: 'print' },
-  名之曰: { type: TokenType.Name },
+  名之曰: { type: TokenType.Name, value: undefined },
   施: { type: TokenType.Call, value: 'right' },
   以施: { type: TokenType.Call, value: 'left' },
   噫: { type: TokenType.Builtin, value: 'discard' },
@@ -29,7 +29,7 @@ export const KEYWORDS_ALL: Record<string, TokenDefinition> = {
   今: { type: TokenType.Reassign, value: 'part2' },
   是矣: { type: TokenType.Reassign, value: 'part3' },
   不復存矣: { type: TokenType.Reassign, value: 'delete' },
-  其: { type: TokenType.Answer },
+  其: { type: TokenType.Answer, value: undefined },
 
   乃得: { type: TokenType.Control, value: 'return' },
   乃得矣: { type: TokenType.Control, value: 'returnPrev' },
@@ -60,14 +60,14 @@ export const KEYWORDS_ALL: Record<string, TokenDefinition> = {
   其物如是: { type: TokenType.Control, value: 'objectBody' },
   之物也: { type: TokenType.Control, value: 'objectEnd' },
 
-  夫: { type: TokenType.Expression },
+  夫: { type: TokenType.Expression, value: undefined },
 
-  等於: { type: TokenType.Operator, value: '==' },
-  不等於: { type: TokenType.Operator, value: '!=' },
-  不大於: { type: TokenType.Operator, value: '<=' },
-  不小於: { type: TokenType.Operator, value: '>=' },
-  大於: { type: TokenType.Operator, value: '>' },
-  小於: { type: TokenType.Operator, value: '<' },
+  等於: { type: TokenType.ConditionOperator, value: '==' },
+  不等於: { type: TokenType.ConditionOperator, value: '!=' },
+  不大於: { type: TokenType.ConditionOperator, value: '<=' },
+  不小於: { type: TokenType.ConditionOperator, value: '>=' },
+  大於: { type: TokenType.ConditionOperator, value: '>' },
+  小於: { type: TokenType.ConditionOperator, value: '<' },
 
   加: { type: TokenType.Operator, value: '+' },
   減: { type: TokenType.Operator, value: '-' },
@@ -87,8 +87,8 @@ export const KEYWORDS_ALL: Record<string, TokenDefinition> = {
   銜: { type: TokenType.ArrayOperator, value: 'cat' },
   其餘: { type: TokenType.ArrayOperator, value: 'rest' },
 
-  陰: { type: TokenType.Bool, value: 'false' },
-  陽: { type: TokenType.Bool, value: 'true' },
+  陰: { type: TokenType.Bool, value: false },
+  陽: { type: TokenType.Bool, value: true },
 
   吾嘗觀: { type: TokenType.Import, value: 'file' },
   中: { type: TokenType.Import, value: 'in' },
@@ -108,10 +108,12 @@ export const KEYWORDS_ALL: Record<string, TokenDefinition> = {
   或云: { type: TokenType.Macro, value: 'from' },
   蓋謂: { type: TokenType.Macro, value: 'to' },
 
-  注曰: { type: TokenType.Comment },
-  疏曰: { type: TokenType.Comment },
-  批曰: { type: TokenType.Comment },
-}
+  注曰: { type: TokenType.Comment, value: '' as string },
+  疏曰: { type: TokenType.Comment, value: '' as string },
+  批曰: { type: TokenType.Comment, value: '' as string },
+} as const
+
+export type KeywordTokenDefinition = (typeof KEYWORDS_ALL)[keyof typeof KEYWORDS_ALL]
 
 export const KEYWORDS_COMMENT = ['注曰', '疏曰', '批曰']
 
@@ -119,9 +121,9 @@ export const KEYWORDS_MAX_LENGTH = 5
 
 export const KEYWORDS = new Array(KEYWORDS_MAX_LENGTH)
   .fill(null)
-  .map((): Record<string, TokenDefinition> => ({}))
+  .map((): Record<string, KeywordTokenDefinition> => ({}))
 
-export const KEYWORDS_TEXTS = Object.keys(KEYWORDS_ALL)
+export const KEYWORDS_TEXTS = Object.keys(KEYWORDS_ALL) as (keyof typeof KEYWORDS_ALL)[]
 
 KEYWORDS_TEXTS.forEach((v) => {
   KEYWORDS[v.length - 1][v] = KEYWORDS_ALL[v]

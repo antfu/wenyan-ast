@@ -1,4 +1,4 @@
-import { Token, TokenType, AST, VariableDeclaration, VarType, ASTScope, Accessability, FunctionDeclaration, Program, Statement } from './types'
+import { Token, TokenType, AST, VariableDeclaration, VarType, ASTScope, Accessability, FunctionDeclaration, Program, Statement, IfStatement, Condition } from './types'
 import { Tokenizer } from './tokenize'
 import { Messages } from './messages'
 import { ErrorHandler } from './error-handler'
@@ -104,15 +104,19 @@ export class Parser {
     this.pushScope(scope)
     while (!this.eof && !shouldExit()) {
       if (this.current.type === TokenType.Declarion) {
-        this.scanDeclarion()
+        this.pushAST(this.scanDeclarion())
         continue
       }
       if (this.current.type === TokenType.PropertyDeclarion) {
-        this.scanPropertyDeclarion()
+        this.pushAST(this.scanPropertyDeclarion())
         continue
       }
       if (this.current.type === TokenType.Control && this.current.value === 'functionStart') {
-        this.scanFunctionDeclarion()
+        this.pushAST(this.scanFunctionDeclarion())
+        continue
+      }
+      if (this.current.type === TokenType.Control && this.current.value === 'if') {
+        this.pushAST(this.scanIfStatement())
         continue
       }
       this.index++
@@ -158,10 +162,10 @@ export class Parser {
       this.index += 2
     }
 
-    this.pushAST(node)
+    return node
   }
 
-  private scanPropertyDeclarion() {
+  private scanPropertyDeclarion(): Statement {
     /*
     this.typeassert(this.next, ['lit'], 'property key')
     this.typeassert(this.next3, ['type'], 'property type')
@@ -176,6 +180,8 @@ export class Parser {
     i += 6
     asc.push(x)
     */
+
+    throw new Error('not yet')
   }
 
   // 吾有一術。名之曰「甲」。欲行是術。必先得二數。曰「乙」。曰「丙」。是術曰。
@@ -220,7 +226,50 @@ export class Parser {
 
     this.parseScope(node, () => this.current.value === 'functionEnd')
 
-    this.pushAST(node)
+    return node
+  }
+
+  private scanIfStatement() {
+    const conditionsTokens = []
+    this.index += 1
+    while (!this.eof && this.current.value !== 'conj') {
+      conditionsTokens.push(this.current)
+      this.index += 1
+    }
+    console.log('IF', conditionsTokens)
+    this.index += 1
+    const node: IfStatement = {
+      type: 'IfStatement',
+      body: [],
+      condition: this.parseConditions(conditionsTokens),
+    }
+    this.parseScope(node, () => this.current.value === 'else' || this.current.value === 'end')
+
+    if (this.current.value === 'else')
+      node.else = this.scanIfStatement()
+
+    return node
+  }
+
+  private parseConditions(tokens: Token[]): Condition {
+    if (tokens.length === 0)
+      return true
+
+    if (tokens.length === 1) {
+      if (tokens[0].type === TokenType.Bool)
+        return tokens[0].value
+      this.throwUnexpectedToken()
+    }
+
+    if (tokens.length === 2) {
+      this.typeassert(tokens[0], TokenType.Operator)
+      return {
+        operator: 'not',
+        union: this.parseConditions([tokens[1]]),
+      }
+    }
+
+    this.throwUnexpectedToken()
   }
 
   private get lastASTNode(): Statement | undefined {
@@ -249,9 +298,9 @@ export class Parser {
     return this.parseScope(this.ast) as AST
   }
 
-  private throwUnexpectedToken(message = Messages.UnexpectedTokenIllegal, loc = this.current.loc, ...values: string[]): never {
+  private throwUnexpectedToken(message = Messages.UnexpectedTokenIllegal, loc = this.current?.loc, ...values: string[]): never {
     return this.errorHandler.throwError(
-      loc.start,
+      loc?.start,
       formatErrorMessage(message, values),
     )
   }

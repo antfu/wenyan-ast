@@ -1,3 +1,4 @@
+import { KeywordTokenDefinition } from '../keywords'
 import { SourceLocation } from './location'
 
 export enum TokenType {
@@ -18,6 +19,7 @@ export enum TokenType {
   Name = 'Name',
   Number = 'Number',
   Operator = 'Operator',
+  ConditionOperator = 'ConditionOperator',
   OpOrd = 'OpOrd',
   Punctuations = 'Punctuations',
   Reassign = 'Reassign',
@@ -33,12 +35,25 @@ export interface NumberTokenDefinition {
   value?: number
 }
 
-export interface GeneralTokenDefinition {
-  type: TokenType
-  value?: string
+export interface StringTokenDefinition {
+  type:
+  | TokenType.Punctuations
+  | TokenType.String
+  | TokenType.Identifier
+  value: string
 }
 
-export type TokenDefinition = NumberTokenDefinition | GeneralTokenDefinition
+export interface GeneralTokenDefinition {
+  type:
+  | TokenType.EOF
+  value?: undefined
+}
+
+export type TokenDefinition =
+  | NumberTokenDefinition
+  | KeywordTokenDefinition
+  | StringTokenDefinition
+  | GeneralTokenDefinition
 
 export type Token = TokenDefinition & {
   loc: SourceLocation

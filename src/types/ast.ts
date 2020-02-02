@@ -74,7 +74,7 @@ export interface IfStatement extends Node {
   type: 'IfStatement'
   condition: Condition
   body: Statement[]
-  else: IfStatement
+  else?: IfStatement
 }
 
 export interface WhileStatement extends Node {
