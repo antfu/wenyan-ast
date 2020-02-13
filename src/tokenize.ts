@@ -1,9 +1,8 @@
 import { KEYWORDS_MAX_LENGTH, KEYWORDS, KEYWORDS_NUMBERS, KEYWORDS_COMMENT } from './keywords'
-import { ErrorHandler } from './error-handler'
+import { ErrorHandler } from './errors/handler'
 import { Messages } from './messages'
 import { Character } from './character'
 import { Token, TokenType, Position, SourceLocation, TokenDefinition } from './types'
-import { formatErrorMessage } from './utils'
 import { hanzi2num } from './converts/hanzi2num'
 
 export interface TokenizerOptions {
@@ -281,18 +280,20 @@ export class Tokenizer {
     })
   }
 
-  private throwUnexpectedToken(message = Messages.UnexpectedTokenIllegal, ...values: string[]): never {
-    return this.errorHandler.throwError(
-      this.getPosition(),
-      formatErrorMessage(message, values),
-    )
+  private throwUnexpectedToken(message = Messages.UnexpectedTokenIllegal, ...parameters: string[]): never {
+    return this.errorHandler.throwError({
+      pos: this.getPosition(),
+      message,
+      parameters,
+    })
   }
 
-  private tolerateUnexpectedToken(message = Messages.UnexpectedTokenIllegal, ...values: string[]) {
-    this.errorHandler.tolerateError(
-      this.getPosition(),
-      formatErrorMessage(message, values),
-    )
+  private tolerateUnexpectedToken(message = Messages.UnexpectedTokenIllegal, ...parameters: string[]) {
+    return this.errorHandler.tolerateError({
+      pos: this.getPosition(),
+      message,
+      parameters,
+    })
   }
 }
 

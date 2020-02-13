@@ -6,11 +6,3 @@ export function assert(condition: boolean, message: string): void {
   if (!condition)
     throw new Error(`ASSERT: ${message}`)
 }
-
-export function formatErrorMessage(message: string, values: string[]) {
-  const args = values.slice()
-  return message.replace(/%(\d)/g, (_, idx) => {
-    assert(idx < args.length, 'Message reference must be in range')
-    return args[idx]
-  })
-}

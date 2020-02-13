@@ -1,8 +1,7 @@
-import { Token, TokenType, AST, VariableDeclaration, VarType, ASTScope, Accessability, FunctionDeclaration, Program, Statement, IfStatement, Condition } from './types'
+import { Token, TokenType, AST, VariableDeclaration, VarType, ASTScope, Accessability, FunctionDeclaration, Program, Statement, IfStatement, Condition, ASTValue } from './types'
 import { Tokenizer } from './tokenize'
 import { Messages } from './messages'
-import { ErrorHandler } from './error-handler'
-import { formatErrorMessage } from './utils'
+import { ErrorHandler } from './errors/handler'
 
 export interface ParseOptions {
   errorHandler: ErrorHandler
@@ -151,6 +150,7 @@ export class Parser {
     while (!this.eof && this.current.type === TokenType.Assign) {
       node.values.push({
         type: 'Value',
+        varType: node.varType,
         value: this.next.value as string,
         loc: this.sourcemap ? this.next.loc : undefined,
       })
@@ -235,7 +235,9 @@ export class Parser {
   private scanIfStatement() {
     let condition: Condition | undefined
 
-    if (this.current.value === 'if' || this.current.value === 'elseIf') {
+    if (this.current.value === 'if'
+      || this.current.value === 'elseIf'
+    ) {
       const conditionsTokens = []
       this.index += 1
       // @ts-ignore
@@ -256,7 +258,7 @@ export class Parser {
       }
     }
     else if (this.current.value === 'else') {
-      condition = true
+      condition = undefined
     }
 
     this.index += 1
@@ -284,9 +286,29 @@ export class Parser {
       return true
 
     if (tokens.length === 1) {
-      if (tokens[0].type === TokenType.Bool)
+      if (tokens[0].type === TokenType.Bool) {
         return tokens[0].value
-      this.throwUnexpectedToken()
+      }
+      else if (tokens[0].type === TokenType.Identifier) {
+        return {
+          type: 'Identifier',
+          name: tokens[0].value as string,
+        }
+      }
+      else if (tokens[0].type === TokenType.String) {
+        return {
+          type: 'Value',
+          varType: VarType.String,
+          value: tokens[0].value,
+        }
+      }
+      else if (tokens[0].type === TokenType.Number) {
+        return {
+          type: 'Value',
+          varType: VarType.Number,
+          value: tokens[0].value as number,
+        }
+      }
     }
 
     if (tokens.length === 2) {
@@ -298,9 +320,17 @@ export class Parser {
       }
     }
 
-    // TOOD: binary
+    if (tokens.length === 3) {
+      this.typeassert(tokens[1], TokenType.ConditionOperator)
+      return {
+        type: 'BinaryCondition',
+        operator: tokens[1].value as any,
+        left: this.parseConditions([tokens[0]]),
+        right: this.parseConditions([tokens[2]]),
+      }
+    }
 
-    this.throwUnexpectedToken()
+    this.throwUnexpectedToken(`Unexpected condition sequence: ${tokens.map(i => i.type).join(',')}`)
   }
 
   private get lastASTNode(): Statement | undefined {
@@ -329,11 +359,14 @@ export class Parser {
     return this.parseScope(this.ast) as AST
   }
 
-  private throwUnexpectedToken(message = Messages.UnexpectedTokenIllegal, loc = this.current?.loc, ...values: string[]): never {
-    return this.errorHandler.throwError(
-      loc?.start,
-      formatErrorMessage(message, values),
-    )
+  private throwUnexpectedToken(message = Messages.UnexpectedTokenIllegal, loc = this.current?.loc, ...parameters: string[]): never {
+    return this.errorHandler.throwError({
+      name: 'ParseError',
+      pos: loc?.start,
+      message,
+      parameters,
+      source: this.source,
+    })
   }
 }
 

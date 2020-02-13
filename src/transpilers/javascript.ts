@@ -1,5 +1,5 @@
 /* eslint-disable no-case-declarations */
-import { AST, ASTScope, VarType, Accessability, Condition, IfStatement } from '../types'
+import { AST, ASTScope, VarType, Accessability, Condition, IfStatement, ASTValue } from '../types'
 import { Transplier } from './base'
 
 export class JavascriptTranspiler extends Transplier {
@@ -39,10 +39,16 @@ export class JavascriptTranspiler extends Transplier {
         return `${op}(${this.transConditions(i.union)})`
       }
       else if (i.type === 'BinaryCondition') {
-        return `(${this.transConditions(i.left)})${i.operator}(${this.transConditions(i.right)})`
+        return `${this.transConditions(i.left)}${i.operator}${this.transConditions(i.right)}`
+      }
+      else if (i.type === 'Value') {
+        return this.transpileValue(i)
       }
       else {
-        this.errorHandler.throwError()
+        this.errorHandler.throwError({
+          // @ts-ignore
+          message: `UNEXPECTED NODE ${i.type}`,
+        })
       }
     })
       .join(' ')
@@ -59,6 +65,41 @@ export class JavascriptTranspiler extends Transplier {
     return code
   }
 
+  private transpileValue(node: ASTValue) {
+    let value = node.value
+
+    if (value === undefined) {
+      switch (node.varType) {
+        case VarType.Array:
+          value = '[]'
+          break
+        case VarType.Number:
+          value = '0'
+          break
+        case VarType.String:
+          value = '""'
+          break
+        case VarType.Function:
+          value = '_=>{}'
+          break
+        case VarType.Object:
+          value = '{}'
+          break
+        case VarType.Auto:
+          value = 'undefined'
+          break
+        case VarType.Boolean:
+          value = 'false'
+          break
+      }
+    }
+
+    if (node.varType === VarType.String)
+      value = `\`${this.escapeQuote(value.toString())}\``
+
+    return value
+  }
+
   private transpileScope(scope: ASTScope) {
     let code = ''
     const strayVars = []
@@ -68,39 +109,11 @@ export class JavascriptTranspiler extends Transplier {
         case 'VariableDeclaration':
           for (let j = 0; j < s.count; j++) {
             let name = s.names[j]
-            let value = s.values[j]?.value
             if (name === undefined) {
               name = this.nextVar()
               strayVars.push(name)
             }
-            if (value === undefined) {
-              switch (s.varType) {
-                case VarType.Array:
-                  value = '[]'
-                  break
-                case VarType.Number:
-                  value = '0'
-                  break
-                case VarType.String:
-                  value = '""'
-                  break
-                case VarType.Function:
-                  value = '()=>0'
-                  break
-                case VarType.Object:
-                  value = '{}'
-                  break
-                case VarType.Auto:
-                  value = 'undefined'
-                  break
-                case VarType.Boolean:
-                  value = 'false'
-                  break
-              }
-            }
-            if (s.varType === VarType.String)
-              value = `\`${this.escapeQuote(value.toString())}\``
-
+            const value = this.transpileValue(s.values[j] || { value: undefined, varType: s.varType, type: 'Value' })
             code += `${this.getAccessDecaleration(name, s.accessability)}${value};`
           }
           break

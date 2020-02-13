@@ -1,4 +1,5 @@
 import { SourceLocation } from './location'
+import { Token } from './tokens'
 
 export interface Node {
   loc?: SourceLocation
@@ -21,6 +22,7 @@ export const enum VarType {
 
 export interface ASTValue extends Node {
   type: 'Value'
+  varType: VarType
   value: string | number | boolean
 }
 
@@ -69,12 +71,12 @@ export type Condition =
   | BinaryCondition
   | boolean
   | Identifier
+  | ASTValue
   | 'ans'
 
 export interface Identifier {
   type: 'Identifier'
   name: string
-  varType: VarType
 }
 
 export interface IfStatement extends Node {

@@ -1,5 +1,5 @@
 import transpilers from './transpilers'
-import { ErrorHandler } from './error-handler'
+import { ErrorHandler } from './errors/handler'
 import { Parser } from './parse'
 import { AST, Token } from './types'
 import { Transplier } from './transpilers/base'

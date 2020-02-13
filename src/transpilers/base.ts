@@ -1,6 +1,5 @@
 import { AST, Position } from '../types'
-import { ErrorHandler } from '../error-handler'
-import { formatErrorMessage } from '../utils'
+import { ErrorHandler } from '../errors/handler'
 
 export interface TransplierOptions {
   errorHandler: ErrorHandler
@@ -33,10 +32,11 @@ export abstract class Transplier {
     return `_ans${++this.varCount}`
   }
 
-  protected throwError(pos?: Position, message = '', ...values: string[]) {
-    this.errorHandler.throwError(
+  protected throwError(pos?: Position, message = '', ...parameters: string[]) {
+    this.errorHandler.throwError({
       pos,
-      formatErrorMessage(message, values),
-    )
+      message,
+      parameters,
+    })
   }
 }
