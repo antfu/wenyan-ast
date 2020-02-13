@@ -19,6 +19,7 @@ describe('parse', () => {
       names: ['甲'],
       values: [{
         type: 'Value',
+        varType: VarType.Number,
         value: 3,
       }],
       accessability: Accessability.private,

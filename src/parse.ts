@@ -1,4 +1,4 @@
-import { Token, TokenType, AST, VariableDeclaration, VarType, ASTScope, Accessability, FunctionDeclaration, Program, Statement, IfStatement, Condition, ASTValue } from './types'
+import { Token, TokenType, AST, VariableDeclaration, VarType, ASTScope, Accessability, FunctionDeclaration, Program, Statement, IfStatement, Expression, ReturnStatement } from './types'
 import { Tokenizer } from './tokenize'
 import { Messages } from './messages'
 import { ErrorHandler } from './errors/handler'
@@ -121,6 +121,18 @@ export class Parser {
         this.pushAST(this.scanIfStatement())
         continue
       }
+      if (this.current.value?.toString().startsWith('return')) {
+        this.pushAST(this.scanReturnStatement())
+        continue
+      }
+      if (this.current.value === 'continue') {
+        this.pushAST({
+          type: 'ContinueStatement',
+        })
+        this.index += 1
+        continue
+      }
+
       this.index++
     }
     return this.popScope()
@@ -233,7 +245,7 @@ export class Parser {
   }
 
   private scanIfStatement() {
-    let condition: Condition | undefined
+    let condition: Expression | undefined
 
     if (this.current.value === 'if'
       || this.current.value === 'elseIf'
@@ -245,16 +257,16 @@ export class Parser {
         conditionsTokens.push(this.current)
         this.index += 1
       }
-      condition = this.parseConditions(conditionsTokens)
+      condition = this.parseExpressions(conditionsTokens)
     }
     else if (this.current.value === 'ifTrue') {
       condition = 'ans'
     }
     else if (this.current.value === 'ifFalse') {
       condition = {
-        type: 'UnaryCondition',
+        type: 'UnaryOperation',
         operator: 'not',
-        union: 'ans',
+        expression: 'ans',
       }
     }
     else if (this.current.value === 'else') {
@@ -281,13 +293,42 @@ export class Parser {
     return node
   }
 
-  private parseConditions(tokens: Token[]): Condition {
+  private scanReturnStatement() {
+    const node: ReturnStatement = {
+      type: 'ReturnStatement',
+    }
+
+    if (this.current.value === 'returnPrev') {
+      node.expression = 'ans'
+      this.index += 1
+    }
+    else if (this.current.value === 'return') {
+      const tokens: Token[] = []
+      this.index += 1
+      // @ts-ignore
+      while (!this.eof && this.current.value !== 'end') {
+        tokens.push(this.current)
+        this.index += 1
+      }
+      node.expression = this.parseExpressions(tokens)
+    }
+    else if (this.current.value === 'returnVoid') {
+      this.index += 1
+    }
+
+    return node
+  }
+
+  private parseExpressions(tokens: Token[]): Expression {
     if (tokens.length === 0)
       return true
 
     if (tokens.length === 1) {
       if (tokens[0].type === TokenType.Bool) {
         return tokens[0].value
+      }
+      else if (tokens[0].type === TokenType.Answer) {
+        return 'ans'
       }
       else if (tokens[0].type === TokenType.Identifier) {
         return {
@@ -314,23 +355,23 @@ export class Parser {
     if (tokens.length === 2) {
       this.typeassert(tokens[0], TokenType.Operator)
       return {
-        type: 'UnaryCondition',
+        type: 'UnaryOperation',
         operator: 'not',
-        union: this.parseConditions([tokens[1]]),
+        expression: this.parseExpressions([tokens[1]]),
       }
     }
 
     if (tokens.length === 3) {
       this.typeassert(tokens[1], TokenType.ConditionOperator)
       return {
-        type: 'BinaryCondition',
+        type: 'BinaryOperation',
         operator: tokens[1].value as any,
-        left: this.parseConditions([tokens[0]]),
-        right: this.parseConditions([tokens[2]]),
+        left: this.parseExpressions([tokens[0]]),
+        right: this.parseExpressions([tokens[2]]),
       }
     }
 
-    this.throwUnexpectedToken(`Unexpected condition sequence: ${tokens.map(i => i.type).join(',')}`)
+    this.throwUnexpectedToken(`Unexpected expression sequence: ${tokens.map(i => i.type).join(',')}`)
   }
 
   private get lastASTNode(): Statement | undefined {

@@ -53,22 +53,22 @@ export interface FunctionDeclaration extends Node {
   accessability: Accessability
 }
 
-export type UnaryCondition = {
-  type: 'UnaryCondition'
+export type UnaryOperation = {
+  type: 'UnaryOperation'
   operator: 'not'
-  union: Condition
+  expression: Expression
 }
 
-export type BinaryCondition = {
-  type: 'BinaryCondition'
-  left: Condition
-  operator: '&&' | '||'
-  right: Condition
+export type BinaryOperation = {
+  type: 'BinaryOperation'
+  left: Expression
+  operator: '&&' | '||' | '==' | '+' | '-'|'*'|'/'
+  right: Expression
 }
 
-export type Condition =
-  | UnaryCondition
-  | BinaryCondition
+export type Expression =
+  | UnaryOperation
+  | BinaryOperation
   | boolean
   | Identifier
   | ASTValue
@@ -81,14 +81,14 @@ export interface Identifier {
 
 export interface IfStatement extends Node {
   type: 'IfStatement'
-  condition?: Condition
+  condition?: Expression
   body: Statement[]
   else?: IfStatement
 }
 
 export interface WhileStatement extends Node {
   type: 'WhileStatement'
-  condition: Condition
+  condition: Expression
   body: Statement[]
 }
 
@@ -117,6 +117,20 @@ export interface ImportStatement extends Node {
   imports: string[]
 }
 
+export interface ReturnStatement extends Node {
+  type: 'ReturnStatement'
+  expression?: Expression
+}
+
+export interface ContinueStatement extends Node {
+  type: 'ContinueStatement'
+}
+
+export interface ExpressionStatement extends Node {
+  type: 'ExpressionStatement'
+  expression: Expression
+}
+
 export interface FunctionCall extends Node {
   type: 'FunctionCall'
   function: Identifier
@@ -134,6 +148,9 @@ export type Statement =
   | FunctionCall
   | TryStatement
   | CatchStatement
+  | ReturnStatement
+  | ExpressionStatement
+  | ContinueStatement
 
 export type ASTScope =
   | Program

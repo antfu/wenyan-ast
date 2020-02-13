@@ -1,5 +1,5 @@
 /* eslint-disable no-case-declarations */
-import { AST, ASTScope, VarType, Accessability, Condition, IfStatement, ASTValue } from '../types'
+import { AST, ASTScope, VarType, Accessability, IfStatement, ASTValue, Expression } from '../types'
 import { Transplier } from './base'
 
 export class JavascriptTranspiler extends Transplier {
@@ -19,12 +19,12 @@ export class JavascriptTranspiler extends Transplier {
       : `let ${name}=`
   }
 
-  private transConditions(conditions: Condition | Condition[]): string {
-    if (!Array.isArray(conditions))
-      conditions = [conditions]
+  private transExpressions(expressions: Expression | Expression[]): string {
+    if (!Array.isArray(expressions))
+      expressions = [expressions]
 
     // eslint-disable-next-line array-callback-return
-    return conditions.map((i) => {
+    return expressions.map((i) => {
       if (i === 'ans') {
         return this.currentVar()
       }
@@ -34,12 +34,12 @@ export class JavascriptTranspiler extends Transplier {
       else if (i.type === 'Identifier') {
         return i.name
       }
-      else if (i.type === 'UnaryCondition') {
+      else if (i.type === 'UnaryOperation') {
         const op = '!'
-        return `${op}(${this.transConditions(i.union)})`
+        return `${op}(${this.transExpressions(i.expression)})`
       }
-      else if (i.type === 'BinaryCondition') {
-        return `${this.transConditions(i.left)}${i.operator}${this.transConditions(i.right)}`
+      else if (i.type === 'BinaryOperation') {
+        return `${this.transExpressions(i.left)}${i.operator}${this.transExpressions(i.right)}`
       }
       else if (i.type === 'Value') {
         return this.transpileValue(i)
@@ -57,7 +57,7 @@ export class JavascriptTranspiler extends Transplier {
   private transIf(s: IfStatement) {
     let code = ''
     if (s.condition != null)
-      code = `if(${this.transConditions(s.condition)}){${this.transpileScope(s)}}`
+      code = `if(${this.transExpressions(s.condition)}){${this.transpileScope(s)}}`
     else
       code = `{${this.transpileScope(s)}}`
     if (s.else)
@@ -128,15 +128,17 @@ export class JavascriptTranspiler extends Transplier {
 
           if (s.args.length > 0) {
             s.args.forEach((arg, i) => {
-              if (i === 0)
-                starts += `function(${arg.name}){`
-              else
-                starts += `return function(${arg.name}){`
-              ends += '};'
+              if (i !== s.args.length - 1) {
+                starts += `${arg.name}=>`
+              }
+              else {
+                starts += `${arg.name}=>{`
+                ends += '};'
+              }
             })
           }
           else {
-            starts = 'function(){'
+            starts = '()=>{'
             ends = '};'
           }
           code += this.getAccessDecaleration(name, s.accessability) + starts + this.transpileScope(s) + ends
@@ -144,6 +146,17 @@ export class JavascriptTranspiler extends Transplier {
 
         case 'IfStatement':
           code += this.transIf(s)
+          break
+
+        case 'ReturnStatement':
+          if (!s.expression)
+            code += 'return;'
+          else
+            code += `return ${this.transExpressions(s.expression)};`
+          break
+
+        case 'ContinueStatement':
+          code += 'continue'
           break
 
         default:

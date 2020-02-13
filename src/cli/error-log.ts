@@ -6,18 +6,16 @@ function getCodeOfLine(code: string, line: number) {
 }
 
 export function printError(error: WenyanError) {
-  if (error instanceof WenyanError) {
-    const { file, pos, source, name, message } = error
+  const { file, pos, source, name, message } = error
 
-    if (pos && source) {
-      console.log(`${file || 'Anonymous'}:${pos.line}:${pos.column}\n`)
+  if (pos && source) {
+    console.log(`${file || 'Anonymous'}:${pos.line}:${pos.column}\n`)
 
-      let line = getCodeOfLine(source, pos.line)
-      line = chalk.green(line.slice(0, pos.column - 1))
+    let line = getCodeOfLine(source, pos.line)
+    line = chalk.green(line.slice(0, pos.column - 1))
       + chalk.red(line.slice(pos.column - 1, pos.column))
       + chalk.gray(line.slice(pos.column))
-      console.log(line)
-    }
+    console.log(line)
 
     console.log()
 
