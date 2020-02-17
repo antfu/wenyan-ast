@@ -29,6 +29,7 @@ import { ref, watch, onMounted } from '@vue/composition-api'
 import prettier from 'prettier/standalone'
 // @ts-ignore
 import parserBabylon from 'prettier/parser-babylon'
+import { useStoragePlain } from '@vueuse/core'
 import { Compiler, Program, Token } from '../../core/src'
 import { printError } from '../../cli/src/error-log'
 import Examples from '../../examples/index'
@@ -36,9 +37,9 @@ import Examples from '../../examples/index'
 export default {
   name: 'App',
   setup() {
-    const code = ref('')
+    const code = useStoragePlain('wenyan-parser-viewer-code', '')
     const compiled = ref('')
-    const example = ref('helloworld')
+    const example = useStoragePlain('wenyan-parser-viewer-example', 'helloworld')
     const tab = ref(0)
     const ast = ref<Program>([])
     const tokens = ref<Token[]>([])
@@ -75,7 +76,7 @@ export default {
 
     watch(example, () => {
       code.value = Examples.examples[example.value as any] || ''
-    })
+    }, { lazy: true })
 
     onMounted(() => {
       // @ts-ignore
