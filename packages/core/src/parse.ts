@@ -9,32 +9,32 @@ export interface ParseOptions {
 }
 
 export class Parser {
-  tokens: Token[]
-  index: number
-  ast: AST
+  protected _tokens: Token[] | undefined
+  protected _ast: AST
+  protected _length = 0
+  protected index = 0
 
-  readonly sourcemap: boolean
+  readonly options: ParseOptions
   protected tokenier: Tokenizer
-  protected length: number
-  protected readonly errorHandler: ErrorHandler
   protected scopeStack: ASTScope[] = []
 
   constructor(
     public readonly source: string,
     options: Partial<ParseOptions> = {},
   ) {
-    this.errorHandler = options.errorHandler || new ErrorHandler()
-    this.sourcemap = options.sourcemap ?? true
+    const {
+      errorHandler = new ErrorHandler(),
+      sourcemap = true,
+    } = options
+
+    this.options = {
+      errorHandler,
+      sourcemap,
+    }
     this.tokenier = new Tokenizer(this.source, {
-      errorHandler: this.errorHandler,
+      errorHandler,
     })
-    this.tokens = this.tokenier.getTokens()
-
-    this.preprocessTokens()
-    this.length = this.tokens.length - 1 // ignore the EOF token
-
-    this.index = 0
-    this.ast = {
+    this._ast = {
       type: 'Program',
       body: [],
       loc: this.sourcemap
@@ -46,8 +46,39 @@ export class Parser {
     }
   }
 
+  public run() {
+    this._tokens = this.tokenier.getTokens()
+
+    this.preprocessTokens()
+    this._length = this._tokens.length - 1 // ignore the EOF token
+
+    this.index = 0
+
+    return this.parseScope(this.ast) as AST
+  }
+
+  get length() {
+    return this._length
+  }
+
+  get tokens() {
+    return this._tokens!
+  }
+
+  get ast() {
+    return this._ast!
+  }
+
+  get errorHandler() {
+    return this.options.errorHandler
+  }
+
+  get sourcemap() {
+    return this.options.sourcemap
+  }
+
   get eof() {
-    return this.index >= this.length
+    return this.index >= this._length
   }
 
   private get current() {
@@ -87,7 +118,7 @@ export class Parser {
   }
 
   private preprocessTokens() {
-    this.tokens = this.tokens.filter(t => t.type !== TokenType.Punctuations)
+    this._tokens = this.tokens.filter(t => t.type !== TokenType.Punctuations)
   }
 
   protected pushScope(scope: ASTScope) {
@@ -498,10 +529,6 @@ export class Parser {
       this.throwUnexpectedToken(`Invalid token. Expecting ${message}`, token.loc)
   }
 
-  public getAST() {
-    return this.parseScope(this.ast) as AST
-  }
-
   private throwUnexpectedToken(message = Messages.UnexpectedTokenIllegal, loc = this.current?.loc, ...parameters: string[]): never {
     return this.errorHandler.throwError({
       name: 'ParseError',
@@ -514,5 +541,9 @@ export class Parser {
 }
 
 export function parse(src: string, options: Partial<ParseOptions> = {}) {
-  return new Parser(src, options).getAST()
+  const parser = new Parser(src, options)
+
+  parser.run()
+
+  return parser.ast
 }
