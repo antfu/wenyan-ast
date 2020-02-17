@@ -13,7 +13,8 @@
     "release": "bump --commit --push --tag && npm run publish:ci",
     "lint": "eslint packages/**/*.ts",
     "lint:fix": "npm run lint -- --fix",
-    "test": "lerna run test"
+    "test": "lerna run test",
+    "postinstall": "lerna bootstrap"
   },
   "husky": {
     "hooks": {
