@@ -134,6 +134,7 @@ export interface FunctionCall extends Node {
   type: 'FunctionCall'
   function: Identifier
   args: (Identifier | ASTValue | Answer)[]
+  resultName?: Identifier
 }
 
 export type Answer = 'Answer'

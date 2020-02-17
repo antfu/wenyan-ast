@@ -239,7 +239,7 @@ export class Parser {
     throw new Error('not yet')
   }
 
-  // 施「漢諾塔」於「盤數」。於一。於二。於三。
+  // 施「漢諾塔」於「盤數」。於一。於二。於三。名之曰「史」。
   private scanFunctionCallRight() {
     this.typeassert(this.next, TokenType.Identifier, 'identifier')
 
@@ -288,12 +288,15 @@ export class Parser {
       }
       this.index += 2
     }
+    if (this.current.type === TokenType.Name) {
+      this.typeassert(this.next, TokenType.Identifier, 'identifier')
+      node.resultName = {
+        type: 'Identifier',
+        name: this.next.value,
+      }
+      this.index += 2
+    }
     return node
-  }
-
-  // 名之曰「史」。
-  private scanFunctionAssign() {
-    // TODO:
   }
 
   // 吾有一術。名之曰「甲」。欲行是術。必先得二數。曰「乙」。曰「丙」。是術曰。

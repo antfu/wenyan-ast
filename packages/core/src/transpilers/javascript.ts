@@ -55,7 +55,7 @@ export class JavascriptTranspiler extends Transplier {
   }
 
   private transFunctionCall(s: FunctionCall) {
-    let code = `let ${this.nextVar()}=${s.function.name}`
+    let code = `let ${s.resultName?.name || this.nextVar()}=${s.function.name}`
     for (const i of s.args)
       code += `(${this.transExpressions(i)})`
     if (!s.args.length)
