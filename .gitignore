@@ -80,5 +80,4 @@ dist
 # IDE
 .idea
 
-packages/**/package-lock.json
 .DS_Store
