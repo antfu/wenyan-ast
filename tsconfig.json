@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",
     "target": "es5",
-    "module": "commonjs",
+    "module": "es2015",
     "moduleResolution": "node",
     "lib": [
       "esnext",
@@ -12,16 +13,16 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "strict": true,
-    "declaration": true,
-    "declarationDir": "./typings",
     "types": [
       "@types/node",
       "@types/jest"
-    ]
+    ],
+    "paths": {
+      "@core/*": [
+        "./packages/core/src/*"
+      ],
+    }
   },
-  "include": [
-    "src"
-  ],
   "exclude": [
     "node_modules",
     "**/**/*.test.ts",

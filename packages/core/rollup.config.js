@@ -1,5 +1,5 @@
 // rollup.config.js
-import typescript from '@rollup/plugin-typescript'
+import typescript from 'rollup-plugin-typescript2'
 import json from '@rollup/plugin-json'
 import dts from 'rollup-plugin-dts'
 import { uglify } from 'rollup-plugin-uglify'
@@ -9,10 +9,10 @@ const external = [
 
 export default [
   {
-    input: 'src/index.ts',
+    input: './src/index.ts',
     output: [
       {
-        file: 'dist/index.js',
+        file: './dist/index.js',
         format: 'cjs',
       },
     ],

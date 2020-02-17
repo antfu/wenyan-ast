@@ -1,17 +1,17 @@
 {
-  "name": "wenyan-compiler",
+  "name": "@wenyan-lang/monorepo",
+  "private": true,
   "version": "0.0.1",
   "description": "",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "rollup -c --watch",
-    "build": "npm run typings && rollup -c",
-    "typings": "tsc --emitDeclarationOnly",
-    "publish:ci": "npm run build && npm publish --access public",
+    "bootstrap": "lerna bootstrap",
+    "build": "lerna run build",
+    "publish:ci": "lerna run publish:ci",
     "release": "bump --commit --push --tag && npm run publish:ci",
-    "lint": "eslint src/**/*.ts",
+    "lint": "eslint packages/**/*.ts",
     "lint:fix": "npm run lint -- --fix",
-    "test": "jest"
+    "test": "lerna run test"
   },
   "husky": {
     "hooks": {
@@ -24,17 +24,10 @@
       "git add"
     ]
   },
-  "files": [
-    "dist"
-  ],
-  "keywords": [],
   "author": "Anthony Fu<anthonyfu117@hotmail.com>",
   "license": "MIT",
-  "dependencies": {},
   "devDependencies": {
     "@antfu/eslint-config-ts": "0.2.11",
-    "@rollup/plugin-json": "4.0.1",
-    "@rollup/plugin-typescript": "3.0.0",
     "@types/jest": "25.1.1",
     "@types/node": "13.5.3",
     "chalk": "^3.0.0",
@@ -42,12 +35,10 @@
     "eslint-plugin-jest": "23.6.0",
     "husky": "4.2.1",
     "jest": "^25.1.0",
+    "lerna": "^3.20.2",
     "lint-staged": "10.0.7",
     "nodemon": "2.0.2",
     "rimraf": "3.0.1",
-    "rollup": "1.31.0",
-    "rollup-plugin-dts": "1.2.1",
-    "rollup-plugin-uglify": "6.0.4",
     "ts-jest": "25.1.0",
     "ts-node": "8.6.2",
     "typescript": "3.7.5"

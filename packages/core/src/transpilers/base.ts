@@ -1,5 +1,5 @@
 import { AST, Position } from '../types'
-import { ErrorHandler } from '../errors/handler'
+import { ErrorHandler } from '../errors'
 
 export interface TransplierOptions {
   errorHandler: ErrorHandler
