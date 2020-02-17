@@ -12,10 +12,11 @@ export interface CompileOptions {
 
 export class Compiler {
   readonly options: CompileOptions
-  readonly ast: AST
-  readonly tokens: Token[]
-  readonly transpiler: Transplier
-  readonly compiled: string
+  private _ast: AST | undefined
+  private _tokens: Token[] | undefined
+  private _transpiler: Transplier
+  private _compiled: string | undefined
+  private _initialized = false
 
   constructor(
     public readonly source: string,
@@ -33,17 +34,41 @@ export class Compiler {
       sourcemap,
     }
 
-    const parser = new Parser(source, { errorHandler, sourcemap })
-
-    this.ast = parser.getAST()
-    this.tokens = parser.tokens
     const Transpiler = transpilers[lang]
-    this.transpiler = new Transpiler({ errorHandler })
+    this._transpiler = new Transpiler({ errorHandler })
+  }
 
-    this.compiled = this.transpiler.transpile(this.ast)
+  public run() {
+    const parser = new Parser(this.source, {
+      errorHandler: this.options.errorHandler,
+      sourcemap: this.options.sourcemap,
+    })
+
+    this._tokens = parser.tokens
+    this._ast = parser.getAST()
+    this._compiled = this._transpiler.transpile(this.ast)
+    this._initialized = true
+  }
+
+  get ast() {
+    return this._ast!
+  }
+
+  get tokens() {
+    return this._tokens!
+  }
+
+  get compiled() {
+    return this._compiled!
+  }
+
+  get initialized() {
+    return this._initialized
   }
 }
 
 export function compile(source: string, options: Partial<CompileOptions> = {}) {
-  return new Compiler(source, options).compiled
+  const compiler = new Compiler(source, options)
+  compiler.run()
+  return compiler.compiled
 }

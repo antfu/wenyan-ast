@@ -11,6 +11,11 @@ describe('compile js', () => {
       .toEqual('let 甲=1;let 乙=3;let 丙=5;')
   })
 
+  it('multiple vars', () => {
+    expect(compile('吾有三數。名之曰「甲」曰「乙」曰「丙」。曰一。曰三。曰五。'))
+      .toEqual('let 甲=1;let 乙=3;let 丙=5;')
+  })
+
   it('function without args', () => {
     expect(compile('吾有一術。名之曰「甲」。欲行是術。必先得二數。曰「乙」。曰「丙」。是術曰。是謂「甲」之術也。'))
       .toEqual('let 甲=乙=>丙=>{};')

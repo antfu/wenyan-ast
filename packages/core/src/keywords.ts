@@ -38,7 +38,7 @@ export const KEYWORDS_ALL = {
   之術也: { type: TokenType.Control, value: 'functionEnd' },
   必先得: { type: TokenType.Control, value: 'functionArgs' },
   是術曰: { type: TokenType.Control, value: 'functionBody' },
-  乃行是術曰: { type: TokenType.Control, value: 'functionStart' },
+  乃行是術曰: { type: TokenType.Control, value: 'functionBody' },
   欲行是術: { type: TokenType.Control, value: 'functionStart' },
   也: { type: TokenType.Control, value: 'end' },
   云云: { type: TokenType.Control, value: 'end' },

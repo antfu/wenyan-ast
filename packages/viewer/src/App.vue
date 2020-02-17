@@ -14,18 +14,18 @@
 
     .tab-contents
       .tab-content(v-show='tab === 0')
-        json-viewer(v-model='tokens' :expand-depth='2')
+        json-viewer(:value='tokens' :expand-depth='2')
       .tab-content(v-show='tab === 1')
-        json-viewer(v-model='ast' :expand-depth='2')
+        json-viewer(:value='ast' :expand-depth='2')
       .tab-content.compiled(v-show='tab === 2')
-        codemirror(v-model='compiled' :options='{mode: "javascript"}' ref='cm2')
+        codemirror(:value='compiled' :options='{mode: "javascript", readOnly: true}' ref='cm2')
       .tab-content(v-show='tab === 3')
         pre.error-message {{errorText}}
 </template>
 
 <script lang='ts'>
 import { ref, watch, onMounted } from '@vue/composition-api'
-import { Compiler, Program, Token } from '../../core'
+import { Compiler, Program, Token } from '../../core/src'
 import { printError } from '../../cli/src/error-log'
 import Examples from '../../examples/index'
 
@@ -44,20 +44,21 @@ export default {
     const errorText = ref('')
 
     watch(code, () => {
+      const compiler = new Compiler(code.value, {
+        sourcemap: false,
+      })
       try {
-        const compiler = new Compiler(code.value, {
-          sourcemap: false,
-        })
-        compiled.value = compiler.compiled
+        compiler.run()
         tokens.value = compiler.tokens
         ast.value = compiler.ast
+        compiled.value = compiler.compiled
         error.value = null
         errorText.value = ''
       }
       catch (e) {
+        tokens.value = compiler.tokens || ['ERROR'] as any
+        ast.value = compiler.ast || { message: 'ERROR' } as any
         compiled.value = `// ERROR: ${e}`
-        tokens.value = ['ERROR'] as any
-        ast.value = { message: 'ERROR' } as any
         error.value = e
         errorText.value = ''
         printError(e, (msg: any = '') => errorText.value += `${msg}\n`)
