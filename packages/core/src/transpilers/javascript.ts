@@ -10,7 +10,7 @@ export class JavascriptTranspiler extends Transplier {
   }
 
   private escapeQuote(str: string) {
-    return str.replace(/`/g, '`')
+    return str.replace(/"/g, '\\"')
   }
 
   private getAccessDecaleration(name: string, accessability: Accessability) {
@@ -87,10 +87,10 @@ export class JavascriptTranspiler extends Transplier {
           value = '0'
           break
         case VarType.String:
-          value = '""'
+          value = ''
           break
         case VarType.Function:
-          value = '_=>{}'
+          value = '()=>{}'
           break
         case VarType.Object:
           value = '{}'
@@ -105,7 +105,7 @@ export class JavascriptTranspiler extends Transplier {
     }
 
     if (node.varType === VarType.String)
-      value = `\`${this.escapeQuote(value.toString())}\``
+      value = `"${this.escapeQuote(value.toString())}"`
 
     return value
   }
