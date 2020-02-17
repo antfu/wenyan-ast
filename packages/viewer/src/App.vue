@@ -25,6 +25,10 @@
 
 <script lang='ts'>
 import { ref, watch, onMounted } from '@vue/composition-api'
+// @ts-ignore
+import prettier from 'prettier/standalone'
+// @ts-ignore
+import parserBabylon from 'prettier/parser-babylon'
 import { Compiler, Program, Token } from '../../core/src'
 import { printError } from '../../cli/src/error-log'
 import Examples from '../../examples/index'
@@ -51,7 +55,11 @@ export default {
         compiler.run()
         tokens.value = compiler.tokens
         ast.value = compiler.ast
-        compiled.value = compiler.compiled
+        compiled.value = prettier.format(compiler.compiled, {
+          parser: 'babylon',
+          plugins: [parserBabylon],
+        })
+
         error.value = null
         errorText.value = ''
       }

@@ -8,11 +8,13 @@
   },
   "dependencies": {
     "@wenyanlang/highlight": "^0.1.1",
+    "prettier": "^1.19.1",
     "vue": "^2.6.11",
     "vue-codemirror": "^4.0.6",
     "vue-json-viewer": "^2.2.8"
   },
   "devDependencies": {
+    "@types/prettier": "^1.19.0",
     "@vue/cli-plugin-typescript": "~4.2.0",
     "@vue/cli-service": "~4.2.0",
     "@vue/composition-api": "^0.3.4",
