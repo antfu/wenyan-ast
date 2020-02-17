@@ -10,7 +10,7 @@
       .tab(@click='tab = 0' :class='{active: tab == 0}') Tokens ({{tokens.length}})
       .tab(@click='tab = 1' :class='{active: tab == 1}') AST
       .tab(@click='tab = 2' :class='{active: tab == 2}') Compiled
-      .tab(@click='tab = 3' :class='{active: tab == 3}') Error {{error ? '⚠️' : ''}}
+      .tab(@click='tab = 3' :class='{active: tab == 3}') {{error ? '⚠️' : ''}} Error
 
     .tab-contents
       .tab-content(v-show='tab === 0')
@@ -19,12 +19,14 @@
         json-viewer(v-model='ast' :expand-depth='2')
       .tab-content.compiled(v-show='tab === 2')
         codemirror(v-model='compiled' :options='{mode: "javascript"}' ref='cm2')
-      .tab-content.error-message(v-show='tab === 3') {{error}}
+      .tab-content(v-show='tab === 3')
+        pre.error-message {{errorText}}
 </template>
 
 <script lang='ts'>
 import { ref, watch, onMounted } from '@vue/composition-api'
 import { Compiler, Program, Token } from '../../core'
+import { printError } from '../../cli/src/error-log'
 import Examples from '../../examples/index'
 
 export default {
@@ -39,17 +41,26 @@ export default {
     const error = ref<Error | null>(null)
     const cm1 = ref<Vue>(null)
     const cm2 = ref<Vue>(null)
+    const errorText = ref('')
 
     watch(code, () => {
       try {
-        const compiler = new Compiler(code.value)
+        const compiler = new Compiler(code.value, {
+          sourcemap: false,
+        })
         compiled.value = compiler.compiled
         tokens.value = compiler.tokens
         ast.value = compiler.ast
         error.value = null
+        errorText.value = ''
       }
       catch (e) {
+        compiled.value = `// ERROR: ${e}`
+        tokens.value = ['ERROR'] as any
+        ast.value = { message: 'ERROR' } as any
         error.value = e
+        errorText.value = ''
+        printError(e, (msg: any = '') => errorText.value += `${msg}\n`)
       }
     })
 
@@ -71,6 +82,7 @@ export default {
       tokens,
       tab,
       error,
+      errorText,
       cm1,
       cm2,
       example,
@@ -83,7 +95,7 @@ export default {
 <style lang='stylus'>
 $tabs-height = 40px
 $border-color = #eee
-$theme-color = #385
+$theme-color = #E53
 
 html, body
   margin 0
@@ -150,14 +162,23 @@ html, body
       .compiled .vue-codemirror
         height 100%
 
+      .error-message
+        padding 10px
+        margin 0
+
 .jv-container
   font-size 11px !important
 
   .jv-code
-    padding 10px !important
+    padding 10px 5px !important
+
+  .jv-node
+    margin-left 14px !important
 
   .jv-toggle
     opacity 0.2
+    margin-right -10px !important
+    transform translateX(-12px)
 
     &:hover
       opacity 0.8
