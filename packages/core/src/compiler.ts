@@ -17,6 +17,7 @@ export class Compiler {
   private _transpiler: Transplier
   private _compiled: string | undefined
   private _initialized = false
+  private parser: Parser
 
   constructor(
     public readonly source: string,
@@ -33,21 +34,31 @@ export class Compiler {
       errorHandler,
       sourcemap,
     }
+    this.parser = new Parser(this.source, {
+      errorHandler,
+      sourcemap,
+    })
 
-    const Transpiler = transpilers[lang]
-    this._transpiler = new Transpiler({ errorHandler })
+    this._transpiler = new (transpilers[lang])({ errorHandler })
   }
 
   public run() {
-    const parser = new Parser(this.source, {
-      errorHandler: this.options.errorHandler,
-      sourcemap: this.options.sourcemap,
-    })
+    let error = null
 
-    this._tokens = parser.tokens
-    this._ast = parser.getAST()
+    try {
+      this.parser.run()
+    }
+    catch (e) {
+      error = e
+    }
+
+    this._ast = this.parser.ast
+    this._tokens = this.parser.tokens
     this._compiled = this._transpiler.transpile(this.ast)
     this._initialized = true
+
+    if (error)
+      throw error
   }
 
   get ast() {

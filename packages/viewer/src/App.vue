@@ -176,7 +176,7 @@ html, body
         margin 0
 
 .jv-container
-  font-size 11px !important
+  font-size 12px !important
 
   .jv-code
     padding 10px 5px !important
