@@ -1,4 +1,4 @@
-import { Token, TokenType, AST, VariableDeclaration, VarType, ASTScope, Accessability, FunctionDeclaration, Program, Statement, IfStatement, Expression, ReturnStatement } from './types'
+import { Token, TokenType, AST, VariableDeclaration, VarType, ASTScope, Accessability, FunctionDeclaration, Program, Statement, IfStatement, Expression, ReturnStatement, FunctionCall } from './types'
 import { Tokenizer } from './tokenize'
 import { Messages } from './messages'
 import { ErrorHandler } from './errors/handler'
@@ -132,6 +132,16 @@ export class Parser {
         this.index += 1
         continue
       }
+      if (this.current.type === TokenType.Call) {
+        if (this.current.value === 'right') {
+          this.pushAST(this.scanFunctionCallRight())
+        }
+        else {
+          // TODO:
+          this.throwUnexpectedToken()
+        }
+        continue
+      }
 
       this.index++
     }
@@ -154,7 +164,7 @@ export class Parser {
 
     // 有數四
     if (this.next.type === TokenType.Type) {
-      this.typeassert(this.next2, [TokenType.String, TokenType.Number, TokenType.Bool], 'literals')
+      this.typeassert(this.next2, [TokenType.String, TokenType.Number, TokenType.Bool, TokenType.Answer], 'literals')
 
       node.count = 1
       node.varType = this.next.value as VarType
@@ -229,6 +239,63 @@ export class Parser {
     throw new Error('not yet')
   }
 
+  // 施「漢諾塔」於「盤數」。於一。於二。於三。
+  private scanFunctionCallRight() {
+    this.typeassert(this.next, TokenType.Identifier, 'identifier')
+
+    const node: FunctionCall = {
+      type: 'FunctionCall',
+      function: {
+        type: 'Identifier',
+        name: this.next.value as string,
+      },
+      args: [],
+    }
+    this.index += 2
+    while (!this.eof && this.current.type === TokenType.OpOrd && this.current.value === 'right') {
+      if (this.next.type === TokenType.Answer) {
+        node.args.push('Answer')
+      }
+      else if (this.next.type === TokenType.Identifier) {
+        node.args.push({
+          type: 'Identifier',
+          name: this.next.value as string,
+        })
+      }
+      else if (this.next.type === TokenType.Number) {
+        node.args.push({
+          type: 'Value',
+          varType: VarType.Number,
+          value: this.next.value,
+        })
+      }
+      else if (this.next.type === TokenType.String) {
+        node.args.push({
+          type: 'Value',
+          varType: VarType.String,
+          value: this.next.value,
+        })
+      }
+      else if (this.next.type === TokenType.Bool) {
+        node.args.push({
+          type: 'Value',
+          varType: VarType.Boolean,
+          value: this.next.value,
+        })
+      }
+      else {
+        this.throwUnexpectedToken()
+      }
+      this.index += 2
+    }
+    return node
+  }
+
+  // 名之曰「史」。
+  private scanFunctionAssign() {
+    // TODO:
+  }
+
   // 吾有一術。名之曰「甲」。欲行是術。必先得二數。曰「乙」。曰「丙」。是術曰。
   private scanFunctionDeclarion() {
     const node: FunctionDeclaration = {
@@ -290,13 +357,13 @@ export class Parser {
       condition = this.parseExpressions(conditionsTokens)
     }
     else if (this.current.value === 'ifTrue') {
-      condition = 'ans'
+      condition = 'Answer'
     }
     else if (this.current.value === 'ifFalse') {
       condition = {
         type: 'UnaryOperation',
         operator: 'not',
-        expression: 'ans',
+        expression: 'Answer',
       }
     }
     else if (this.current.value === 'else') {
@@ -329,7 +396,7 @@ export class Parser {
     }
 
     if (this.current.value === 'returnPrev') {
-      node.expression = 'ans'
+      node.expression = 'Answer'
       this.index += 1
     }
     else if (this.current.value === 'return') {
@@ -358,7 +425,7 @@ export class Parser {
         return tokens[0].value
       }
       else if (tokens[0].type === TokenType.Answer) {
-        return 'ans'
+        return 'Answer'
       }
       else if (tokens[0].type === TokenType.Identifier) {
         return {

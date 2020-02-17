@@ -1,5 +1,5 @@
 /* eslint-disable no-case-declarations */
-import { AST, ASTScope, VarType, Accessability, IfStatement, ASTValue, Expression } from '../types'
+import { AST, ASTScope, VarType, Accessability, IfStatement, ASTValue, Expression, FunctionCall } from '../types'
 import { Transplier } from './base'
 
 export class JavascriptTranspiler extends Transplier {
@@ -25,7 +25,7 @@ export class JavascriptTranspiler extends Transplier {
 
     // eslint-disable-next-line array-callback-return
     return expressions.map((i) => {
-      if (i === 'ans') {
+      if (i === 'Answer') {
         return this.currentVar()
       }
       else if (typeof i === 'boolean') {
@@ -52,6 +52,16 @@ export class JavascriptTranspiler extends Transplier {
       }
     })
       .join(' ')
+  }
+
+  private transFunctionCall(s: FunctionCall) {
+    let code = `let ${this.nextVar()}=${s.function.name}`
+    for (const i of s.args)
+      code += `(${this.transExpressions(i)})`
+    if (!s.args.length)
+      code += '()'
+    code += ';'
+    return code
   }
 
   private transIf(s: IfStatement) {
@@ -157,6 +167,10 @@ export class JavascriptTranspiler extends Transplier {
 
         case 'ContinueStatement':
           code += 'continue'
+          break
+
+        case 'FunctionCall':
+          code += this.transFunctionCall(s)
           break
 
         default:

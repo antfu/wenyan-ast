@@ -1,5 +1,4 @@
 import { SourceLocation } from './location'
-import { Token } from './tokens'
 
 export interface Node {
   loc?: SourceLocation
@@ -72,7 +71,7 @@ export type Expression =
   | boolean
   | Identifier
   | ASTValue
-  | 'ans'
+  | Answer
 
 export interface Identifier {
   type: 'Identifier'
@@ -134,8 +133,10 @@ export interface ExpressionStatement extends Node {
 export interface FunctionCall extends Node {
   type: 'FunctionCall'
   function: Identifier
-  args: Identifier[]
+  args: (Identifier | ASTValue | Answer)[]
 }
+
+export type Answer = 'Answer'
 
 export type AST = Program
 
