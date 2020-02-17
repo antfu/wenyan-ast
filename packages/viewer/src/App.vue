@@ -156,7 +156,7 @@ html, body
 
     .tab-contents
       border-top 1px solid $border-color
-      height calc(100vh - $tabs-height)
+      height "calc(100vh - %s)" % ($tabs-height)
       overflow auto
 
       .tab-content.compiled,

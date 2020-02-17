@@ -16,7 +16,7 @@ async function build() {
   }
 
   await fs.writeFile(path.resolve(__dirname, '../index.js'), `module.export=${JSON.stringify({ examples })}`, 'utf-8')
-  await fs.writeFile(path.resolve(__dirname, '../index.ts'), `export default ${JSON.stringify({ examples })} as Record<string, string>`, 'utf-8')
+  await fs.writeFile(path.resolve(__dirname, '../index.ts'), `export default ${JSON.stringify({ examples })} as {examples:Record<string, string>}`, 'utf-8')
 }
 
 build()
