@@ -140,16 +140,10 @@ export class Parser {
 
   // 吾有三數。曰一。曰三。曰五。名之曰「甲」曰「乙」曰「丙」。
   private scanDeclarion() {
-    this.typeassert(this.next, TokenType.Number, 'variable count')
-    this.typeassert(this.next2, TokenType.Type, 'variable type')
-
-    const count = Number(this.next.value)
-    this.assert(Number.isSafeInteger(count) && count > 0, `Invalid variable count ${count}`)
-
     const node: VariableDeclaration = {
       type: 'VariableDeclaration',
-      varType: this.next2.value as VarType,
-      count,
+      varType: VarType.Auto,
+      count: 1,
       values: [],
       names: [],
       accessability: this.current.value as Accessability,
@@ -158,23 +152,59 @@ export class Parser {
     if (this.sourcemap)
       node.loc = { ...this.current.loc }
 
-    this.index += 3
-    while (!this.eof && this.current.type === TokenType.Assign) {
-      node.values.push({
+    // 有數四
+    if (this.next.type === TokenType.Type) {
+      this.typeassert(this.next2, [TokenType.String, TokenType.Number, TokenType.Bool], 'literals')
+
+      node.count = 1
+      node.varType = this.next.value as VarType
+      node.values = [{
         type: 'Value',
         varType: node.varType,
-        value: this.next.value as string,
+        value: this.next2.value as string,
         loc: this.sourcemap ? this.next.loc : undefined,
-      })
-      this.index += 2
+      }]
+      this.index += 3
+      // 名之曰「甲」
+      if (!this.eof && this.current.type === TokenType.Name) {
+        node.names.push(this.next.value as unknown as string)
+        this.index += 2
+      }
     }
-    if (!this.eof && this.current.type === TokenType.Name) {
-      node.names.push(this.next.value as string)
-      this.index += 2
+    // 吾有三數
+    else if (this.next.type === TokenType.Number) {
+      this.typeassert(this.next2, TokenType.Type, 'variable type')
+
+      const count = Number(this.next.value)
+      this.assert(Number.isSafeInteger(count) && count > 0, `Invalid variable count ${count}`)
+
+      node.count = count
+      node.varType = this.next2.value as VarType
+
+      this.index += 3
+      // 曰一。曰三。曰五
+      while (!this.eof && this.current.type === TokenType.Assign) {
+        node.values.push({
+          type: 'Value',
+          varType: node.varType,
+          value: this.next.value as unknown as string,
+          loc: this.sourcemap ? this.next.loc : undefined,
+        })
+        this.index += 2
+      }
+      // 名之曰「甲」
+      if (!this.eof && this.current.type === TokenType.Name) {
+        node.names.push(this.next.value as unknown as string)
+        this.index += 2
+      }
+      // 曰「乙」曰「丙」
+      while (!this.eof && this.current.type === TokenType.Assign) {
+        node.names.push(this.next.value as unknown as string)
+        this.index += 2
+      }
     }
-    while (!this.eof && this.current.type === TokenType.Assign) {
-      node.names.push(this.next.value as string)
-      this.index += 2
+    else {
+      this.throwUnexpectedToken()
     }
 
     return node
@@ -391,9 +421,11 @@ export class Parser {
       this.throwUnexpectedToken(message)
   }
 
-  private typeassert(token: Token, type: TokenType, message = Messages.UnexpectedTokenIllegal) {
-    if (token.type !== type)
-      this.throwUnexpectedToken(message, token.loc)
+  private typeassert(token: Token, types: TokenType | TokenType[], message = Messages.UnexpectedTokenIllegal) {
+    if (!Array.isArray(types))
+      types = [types]
+    if (!types.includes(token.type))
+      this.throwUnexpectedToken(`Invalid token. Expecting ${message}`, token.loc)
   }
 
   public getAST() {
