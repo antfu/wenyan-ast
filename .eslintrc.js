@@ -7,7 +7,7 @@ module.exports = {
     jest: true,
   },
   extends: [
-    '@antfu/eslint-config-ts',
+    '@antfu/eslint-config-vue',
   ],
   plugins: [
     'jest',

@@ -1,0 +1,26 @@
+{
+  "name": "viewer",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "vue-cli-service serve --open",
+    "build": "vue-cli-service build"
+  },
+  "dependencies": {
+    "@wenyanlang/highlight": "^0.1.1",
+    "vue": "^2.6.11",
+    "vue-codemirror": "^4.0.6",
+    "vue-json-viewer": "^2.2.8"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-typescript": "~4.2.0",
+    "@vue/cli-service": "~4.2.0",
+    "@vue/composition-api": "^0.3.4",
+    "pug": "^2.0.4",
+    "pug-plain-loader": "^1.0.0",
+    "stylus": "^0.54.7",
+    "stylus-loader": "^3.0.2",
+    "typescript": "~3.7.5",
+    "vue-template-compiler": "^2.6.11"
+  }
+}

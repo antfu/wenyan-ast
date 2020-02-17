@@ -7,6 +7,7 @@
   "scripts": {
     "bootstrap": "lerna bootstrap",
     "build": "lerna run build",
+    "viewer": "npm -C packages/viewer run dev",
     "publish:ci": "lerna run publish:ci",
     "release": "bump --commit --push --tag && npm run publish:ci",
     "lint": "eslint packages/**/*.ts",
@@ -27,7 +28,7 @@
   "author": "Anthony Fu<anthonyfu117@hotmail.com>",
   "license": "MIT",
   "devDependencies": {
-    "@antfu/eslint-config-ts": "0.2.11",
+    "@antfu/eslint-config-vue": "0.2.11",
     "@types/jest": "25.1.1",
     "@types/node": "13.5.3",
     "chalk": "^3.0.0",
