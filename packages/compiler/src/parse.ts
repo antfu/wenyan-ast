@@ -37,6 +37,15 @@ export class Parser {
     this._ast = {
       type: 'Program',
       body: [],
+    }
+  }
+
+  public run() {
+    this._tokens = this.tokenier.getTokens()
+
+    this._ast = {
+      type: 'Program',
+      body: [],
       loc: this.sourcemap
         ? {
           start: this.tokens[0].loc.start,
@@ -44,10 +53,6 @@ export class Parser {
         }
         : undefined,
     }
-  }
-
-  public run() {
-    this._tokens = this.tokenier.getTokens()
 
     this.preprocessTokens()
     this._length = this._tokens.length - 1 // ignore the EOF token
@@ -542,8 +547,6 @@ export class Parser {
 
 export function parse(src: string, options: Partial<ParseOptions> = {}) {
   const parser = new Parser(src, options)
-
   parser.run()
-
   return parser.ast
 }
