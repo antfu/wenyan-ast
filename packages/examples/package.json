@@ -3,11 +3,13 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "typings": "index.d.ts",
   "scripts": {
     "build": "ts-node ./scripts/build.ts"
   },
   "files": [
-    "index.js"
+    "index.js",
+    "index.d.ts"
   ],
   "devDependencies": {
     "@types/fs-extra": "^8.0.1",

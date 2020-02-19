@@ -1,0 +1,135 @@
+{
+  "beer": {
+    "name": "九十九瓶啤酒"
+  },
+  "clock": {
+    "name": "畫鐘",
+    "author": "antfu"
+  },
+  "collatz": {
+    "name": "考拉兹猜想"
+  },
+  "collatz2": {
+    "name": "考拉兹猜想二"
+  },
+  "crt": {
+    "name": "大衍總數"
+  },
+  "divination": {
+    "name": "春秋古筮法"
+  },
+  "draw_heart": {
+    "name": "畫心"
+  },
+  "eightqueens": {
+    "name": "八皇后問題"
+  },
+  "euclidean": {
+    "name": "歐幾里得法"
+  },
+  "factorial": {
+    "name": "階乘"
+  },
+  "fibonacci_array": {
+    "name": "斐氏列三"
+  },
+  "fibonacci": {
+    "name": "斐氏列"
+  },
+  "fibonacci2": {
+    "name": "斐氏列二"
+  },
+  "fizzbuzz": {
+    "name": "嘶嘶嗡嗡"
+  },
+  "hanoi_stack": {
+    "name": "漢諾塔二"
+  },
+  "hanoi": {
+    "name": "漢諾塔"
+  },
+  "helloworld": {
+    "name": "問天地好在"
+  },
+  "helloworld+": {
+    "name": "問天地好在+"
+  },
+  "import": {
+    "name": "導入示例"
+  },
+  "linglong_tower": {
+    "name": "玲瓏塔"
+  },
+  "macro": {
+    "name": "宏示例"
+  },
+  "mandelbrot": {
+    "name": "曼德博集"
+  },
+  "mergesort": {
+    "name": "歸併排序"
+  },
+  "misc": {
+    "name": "雜項"
+  },
+  "modinv": {
+    "name": "大衍求一術"
+  },
+  "multiplication_table": {
+    "name": "乘算口訣"
+  },
+  "nested_fun": {
+    "name": "嵌套調用示例"
+  },
+  "obj": {
+    "name": "对象示例"
+  },
+  "pascal_triangle": {
+    "name": "賈憲三角"
+  },
+  "pi_leibniz": {
+    "name": "萊布尼茲圓周率估算"
+  },
+  "pi_liuhui": {
+    "name": "劉徽割圓術求圓周率"
+  },
+  "quicksort_inplace": {
+    "name": "快速排序二"
+  },
+  "quicksort": {
+    "name": "快速排序"
+  },
+  "quine": {
+    "name": "自產生程式"
+  },
+  "quine2": {
+    "name": "自產生程式二"
+  },
+  "selectionsort": {
+    "name": "選擇排序"
+  },
+  "serialization": {
+    "name": "渾沌經"
+  },
+  "sieve": {
+    "name": "埃氏篩"
+  },
+  "sqrt_newton": {
+    "name": "牛頓求根法"
+  },
+  "tree": {
+    "name": "畫樹"
+  },
+  "tree2": {
+    "name": "畫樹二"
+  },
+  "try": {
+    "name": "異常處理示例"
+  },
+  "turing": {
+    "name": "圖靈機"
+  },
+  "zh_sqrt": {
+    "name": "增乘開平方"
+  }
+}

@@ -3,7 +3,7 @@
   .column-1
     .bar
       select(v-model='example')
-        option(v-for='opx, k of examples') {{k}}
+        option(v-for='v, k of examples' :value='k') {{v.name || k}}
     codemirror(v-model='code' :options='{mode: "wenyan"}' ref='cm1')
   .column-2
     .tabs
@@ -32,7 +32,7 @@ import parserBabylon from 'prettier/parser-babylon'
 import { useStoragePlain } from '@vueuse/core'
 import { Compiler, Program, Token } from '../../core/src'
 import { printError } from '../../cli/src/error-log'
-import Examples from '../../examples/index'
+import examples from '../../examples'
 
 export default {
   name: 'App',
@@ -75,7 +75,7 @@ export default {
     })
 
     watch(example, () => {
-      code.value = Examples.examples[example.value as any] || ''
+      code.value = examples[example.value as any]?.code || ''
     }, { lazy: true })
 
     onMounted(() => {
@@ -96,7 +96,7 @@ export default {
       cm1,
       cm2,
       example,
-      examples: Examples.examples,
+      examples,
     }
   },
 }

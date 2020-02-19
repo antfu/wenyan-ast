@@ -8,15 +8,23 @@ async function build() {
     cwd: examplesDir,
     onlyFiles: true,
   })
-  const examples: Record<string, string> = {}
+  const info = JSON.parse(await fs.readFile(path.join(examplesDir, 'info.json'), 'utf-8'))
+  const examples: Record<string, {
+    code: string
+    name?: string
+    author?: string
+  }> = {}
 
   for (const filename of filenames) {
     const code = await fs.readFile(path.join(examplesDir, filename), 'utf-8')
-    examples[filename.slice(0, -3)] = code
+    const name = filename.slice(0, -3)
+    examples[name] = {
+      code,
+      ...info[name],
+    }
   }
 
-  await fs.writeFile(path.resolve(__dirname, '../index.js'), `module.export=${JSON.stringify({ examples })}`, 'utf-8')
-  await fs.writeFile(path.resolve(__dirname, '../index.ts'), `export default ${JSON.stringify({ examples })} as {examples:Record<string, string>}`, 'utf-8')
+  await fs.writeFile(path.resolve(__dirname, '../index.js'), `module.exports=${JSON.stringify(examples)}`, 'utf-8')
 }
 
 build()
