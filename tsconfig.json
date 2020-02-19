@@ -21,8 +21,20 @@
       "@types/jest"
     ],
     "paths": {
-      "@core/*": [
-        "./packages/core/src/*"
+      "@wenyanlang/core": [
+        "./packages/core/src"
+      ],
+      "@wenyanlang/examples": [
+        "./packages/examples"
+      ],
+      "@wenyanlang/stdlib": [
+        "./packages/stdlib"
+      ],
+      "@wenyanlang/utils": [
+        "./packages/utils"
+      ],
+      "@wenyanlang/cli": [
+        "./packages/cli"
       ],
     }
   },

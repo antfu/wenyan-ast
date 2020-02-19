@@ -1,9 +1,9 @@
+import { hanzi2num } from './converts'
 import { KEYWORDS_MAX_LENGTH, KEYWORDS, KEYWORDS_NUMBERS, KEYWORDS_COMMENT } from './keywords'
 import { ErrorHandler } from './errors/handler'
 import { Messages } from './messages'
 import { Character } from './character'
 import { Token, TokenType, Position, SourceLocation, TokenDefinition } from './types'
-import { hanzi2num } from './converts/hanzi2num'
 
 export interface TokenizerOptions {
   errorHandler: ErrorHandler

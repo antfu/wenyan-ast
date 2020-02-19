@@ -1,5 +1,5 @@
 import chalk from 'chalk'
-import { WenyanError } from '../../core/src/errors'
+import { WenyanError } from '../../compiler/src/errors'
 
 function getCodeOfLine(code: string, line: number) {
   return code.split(/\s?\n/)[line - 1]
