@@ -1,16 +1,17 @@
 import { hanzi2num } from './converts'
-import { KEYWORDS_MAX_LENGTH, KEYWORDS, KEYWORDS_NUMBERS, KEYWORDS_COMMENT } from './keywords'
+import { KEYWORDS_MAX_LENGTH, KEYWORDS, KEYWORDS_NUMBERS, KEYWORDS_COMMENT } from './types/keywords'
 import { ErrorHandler } from './errors/handler'
 import { Messages } from './messages'
 import { Character } from './character'
-import { Token, TokenType, Position, SourceLocation, TokenDefinition } from './types'
+import { Token, TokenType, Position, SourceLocation, TokenDefinition, MacroDefinition } from './types'
 
 export interface TokenizerOptions {
   errorHandler: ErrorHandler
+  macros: MacroDefinition[]
 }
 
 export class Tokenizer {
-  protected readonly errorHandler: ErrorHandler
+  public readonly options: TokenizerOptions
   private readonly length: number
 
   index: number
@@ -21,9 +22,17 @@ export class Tokenizer {
 
   constructor(
     public readonly source: string,
-    options: TokenizerOptions,
+    options: Partial<TokenizerOptions>,
   ) {
-    this.errorHandler = options.errorHandler
+    const {
+      errorHandler = new ErrorHandler(),
+      macros = [],
+    } = options
+
+    this.options = {
+      errorHandler,
+      macros,
+    }
 
     this.length = source.length
     this.index = 0
@@ -281,7 +290,7 @@ export class Tokenizer {
   }
 
   private throwUnexpectedToken(message = Messages.UnexpectedTokenIllegal, ...parameters: string[]): never {
-    return this.errorHandler.throwError({
+    return this.options.errorHandler.throwError({
       pos: this.getPosition(),
       message,
       parameters,
@@ -289,7 +298,7 @@ export class Tokenizer {
   }
 
   private tolerateUnexpectedToken(message = Messages.UnexpectedTokenIllegal, ...parameters: string[]) {
-    return this.errorHandler.tolerateError({
+    return this.options.errorHandler.tolerateError({
       pos: this.getPosition(),
       message,
       parameters,

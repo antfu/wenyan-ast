@@ -31,9 +31,8 @@ export class Parser {
       errorHandler,
       sourcemap,
     }
-    this.tokenier = new Tokenizer(this.source, {
-      errorHandler,
-    })
+
+    this.tokenier = new Tokenizer(this.source, this.options)
     this._ast = {
       type: 'Program',
       body: [],

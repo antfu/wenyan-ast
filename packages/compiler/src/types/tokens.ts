@@ -1,34 +1,5 @@
-import { KeywordTokenDefinition } from '../keywords'
+import { KeywordTokenDefinition, TokenType } from './keywords'
 import { SourceLocation } from './location'
-
-export enum TokenType {
-  EOF = 'EOF',
-  Answer = 'Answer',
-  ArrayOperator = 'ArrayOperator',
-  Assign = 'Assign',
-  Bool = 'Bool',
-  Builtin = 'Builtin',
-  Call = 'Call',
-  Comment = 'Comment',
-  Control = 'Control',
-  Declarion = 'Declarion',
-  Expression = 'Expression',
-  Identifier = 'Identifier',
-  Import = 'Import',
-  Macro = 'Macro',
-  Name = 'Name',
-  Number = 'Number',
-  Operator = 'Operator',
-  ConditionOperator = 'ConditionOperator',
-  OpOrd = 'OpOrd',
-  Punctuations = 'Punctuations',
-  Reassign = 'Reassign',
-  String = 'String',
-  Throw = 'Throw',
-  Try = 'Try',
-  Type = 'Type',
-  PropertyDeclarion = 'PropertyDeclarion',
-}
 
 export interface NumberTokenDefinition {
   type: TokenType.Number
