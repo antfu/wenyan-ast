@@ -63,12 +63,12 @@ export class JavascriptTranspiler extends Transplier {
       .join(' ')
   }
 
-  private transAssign(assign: AssignTarget, valueString: string) {
-    return `let ${assign?.name || this.nextVar()}=${valueString};`
+  private transAssign(assign: AssignTarget, valueString: string, end = ';') {
+    return `let ${assign?.name || this.nextVar()}=${valueString}${end}`
   }
 
   private transFunctionCall(s: FunctionCall) {
-    let code = this.transAssign(s.assign, s.function.name)
+    let code = this.transAssign(s.assign, s.function.name, '')
     for (const i of s.args)
       code += `(${this.transExpressions(i)})`
     if (!s.args.length)
@@ -213,6 +213,10 @@ export class JavascriptTranspiler extends Transplier {
 
         case 'FunctionCall':
           code += this.transFunctionCall(s)
+          break
+
+        case 'CommentStatement':
+          code += `/*${s.value}*/\n`
           break
 
         case 'ExpressStatement':

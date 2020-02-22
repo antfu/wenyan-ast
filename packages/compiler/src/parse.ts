@@ -114,7 +114,8 @@ export class Parser {
   }
 
   private parseScope(scope: ASTScope, shouldExit = () => false) {
-    // console.log(this.tokens.map(i => i.type))
+    console.log('SCOPE', this.current)
+
     this.pushScope(scope)
     let prev_index = this.index - 1
 
@@ -129,14 +130,14 @@ export class Parser {
         continue
       }
 
-      // function declarion
+      // property declarion
       if (this.current.type === TokenType.PropertyDeclarion) {
         this.pushAST(this.scanPropertyDeclarion())
         continue
       }
 
-      // function start
-      if (this.current.value === 'functionStart') {
+      // function body
+      if (this.current.value === 'functionStart' || this.current.value === 'functionBody') {
         this.pushAST(this.scanFunctionDeclarion())
         continue
       }
@@ -208,6 +209,16 @@ export class Parser {
       if (this.current.value === 'print') {
         this.pushAST({
           type: 'PrintStatement',
+        })
+        this.index += 1
+        continue
+      }
+
+      // comments
+      if (this.current.type === TokenType.Comment) {
+        this.pushAST({
+          type: 'CommentStatement',
+          value: this.current.value as string,
         })
         this.index += 1
         continue
@@ -386,25 +397,29 @@ export class Parser {
       accessability: Accessability.private,
     }
 
-    this.index += 1
-    if (this.current.value === 'functionArgs') {
+    if (this.current.value === 'functionStart') {
       this.index += 1
+
       // @ts-ignore
-      while (this.current.value !== 'functionBody') {
-        this.typeassert(this.current, TokenType.Number, 'argument count')
-        this.typeassert(this.next, TokenType.Type, 'argument type')
-        const varType = this.next.value as VarType
-        const count = Number(this.current.value)
-        this.assert(Number.isSafeInteger(count) && count > 0, `Invalid argument count ${count}`)
-        this.index += 2
-        for (let j = 0; j < count; j++) {
-          this.typeassert(this.current, TokenType.Assign, 'another argument')
-          this.typeassert(this.next, TokenType.Identifier, 'argument')
-          node.args.push({
-            name: this.next.value as string,
-            varType,
-          })
+      if (this.current.value === 'functionArgs') {
+        this.index += 1
+        // @ts-ignore
+        while (this.current.value !== 'functionBody') {
+          this.typeassert(this.current, TokenType.Number, 'argument count')
+          this.typeassert(this.next, TokenType.Type, 'argument type')
+          const varType = this.next.value as VarType
+          const count = Number(this.current.value)
+          this.assert(Number.isSafeInteger(count) && count > 0, `Invalid argument count ${count}`)
           this.index += 2
+          for (let j = 0; j < count; j++) {
+            this.typeassert(this.current, TokenType.Assign, 'another argument')
+            this.typeassert(this.next, TokenType.Identifier, 'argument')
+            node.args.push({
+              name: this.next.value as string,
+              varType,
+            })
+            this.index += 2
+          }
         }
       }
     }
@@ -417,6 +432,7 @@ export class Parser {
       this.popLastAST()
     }
 
+    console.log(this.current)
     this.index += 1
 
     this.parseScope(node, () => this.current.value === 'functionEnd1')

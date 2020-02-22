@@ -49,6 +49,7 @@ export default {
     const errorText = ref('')
 
     watch(code, () => {
+      console.clear()
       const compiler = new Compiler(code.value, {
         sourcemap: false,
       })

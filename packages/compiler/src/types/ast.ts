@@ -165,6 +165,11 @@ export interface PrintStatement extends Node {
   type: 'PrintStatement'
 }
 
+export interface CommentStatement extends Node {
+  type: 'CommentStatement'
+  value: string
+}
+
 export interface FunctionCall extends Node {
   type: 'FunctionCall'
   function: Identifier
@@ -192,6 +197,7 @@ export type Statement =
   | ExpressStatement
   | PrintStatement
   | ReassignStatement
+  | CommentStatement
 
 export type ASTScope =
   | Program
