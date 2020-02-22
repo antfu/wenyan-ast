@@ -143,6 +143,12 @@ export interface ExpressStatement extends Node {
   name?: Identifier
 }
 
+export interface ReassignStatement extends Node {
+  type: 'ReassignStatement'
+  from: Identifier | Answer
+  to: Identifier
+}
+
 export interface PrintStatement extends Node {
   type: 'PrintStatement'
 }
@@ -173,6 +179,7 @@ export type Statement =
   | BreakStatement
   | ExpressStatement
   | PrintStatement
+  | ReassignStatement
 
 export type ASTScope =
   | Program

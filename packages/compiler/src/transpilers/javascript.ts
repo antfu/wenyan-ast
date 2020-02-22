@@ -1,5 +1,5 @@
 /* eslint-disable no-case-declarations */
-import { AST, ASTScope, VarType, Accessability, IfStatement, ASTValue, Expression, FunctionCall, WhileStatement, ExpressStatement, PrintStatement } from '../types'
+import { AST, ASTScope, VarType, Accessability, IfStatement, ASTValue, Expression, FunctionCall, WhileStatement, ExpressStatement, PrintStatement, ReassignStatement } from '../types'
 import { Transplier } from './base'
 
 export class JavascriptTranspiler extends Transplier {
@@ -141,6 +141,10 @@ export class JavascriptTranspiler extends Transplier {
     return `${name}=${code};`
   }
 
+  transReassignStatement(s: ReassignStatement) {
+    return `${s.to.name}=${s.from === 'Answer' ? this.currentVar() : s.from.name};`
+  }
+
   private transpileScope(scope: ASTScope) {
     let code = ''
     const strayVars = []
@@ -223,6 +227,10 @@ export class JavascriptTranspiler extends Transplier {
 
         case 'PrintStatement':
           code += this.transPrint(s)
+          break
+
+        case 'ReassignStatement':
+          code += this.transReassignStatement(s)
           break
 
         default:

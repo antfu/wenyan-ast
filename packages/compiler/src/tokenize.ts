@@ -198,7 +198,12 @@ export class Tokenizer {
 
       // escaping back-slash
       if (char === '\\') {
-        chars += this.source[this.index + 1]
+        const char = this.source[this.index + 1]
+        chars += ({
+          n: '\\n',
+          t: '\\t',
+          '\\': '\\\\',
+        } as Record<string, string>)[char] || char
         this.index += 2
         continue
       }

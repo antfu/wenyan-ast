@@ -1,4 +1,4 @@
-import { Token, TokenType, AST, VariableDeclaration, VarType, ASTScope, Accessability, FunctionDeclaration, Statement, IfStatement, Expression, ReturnStatement, FunctionCall, OperationStatement, BinaryOperation, WhileStatement, ExpressStatement, Identifier } from './types'
+import { Token, TokenType, AST, VariableDeclaration, VarType, ASTScope, Accessability, FunctionDeclaration, Statement, IfStatement, Expression, ReturnStatement, FunctionCall, OperationStatement, BinaryOperation, WhileStatement, ExpressStatement, Identifier, ReassignStatement, Answer } from './types'
 import { Tokenizer } from './tokenize'
 import { Messages } from './messages'
 import { ErrorHandler } from './errors/handler'
@@ -218,6 +218,14 @@ export class Parser {
         continue
       }
 
+      // reassign
+      if (this.current.type === TokenType.Reassign && this.current.value === 'part1') {
+        this.pushAST(this.scanReassignStatement())
+        continue
+      }
+
+      console.warn('Unhandled token ', this.current)
+
       this.index++
     }
     return this.popScope()
@@ -414,7 +422,16 @@ export class Parser {
       this.popLastAST()
     }
 
-    this.parseScope(node, () => this.current.value === 'functionEnd')
+    this.index += 1
+
+    this.parseScope(node, () => this.current.value === 'functionEnd1')
+
+    this.index += 1
+
+    this.assert(this.current.value === node.name, `end with same function name ${this.current.value}`)
+    this.assert(this.next.value === 'functionEnd2')
+
+    this.index += 2
 
     return node
   }
@@ -428,6 +445,43 @@ export class Parser {
     this.index += 1
     this.parseScope(node, () => this.current.value === 'end')
     this.index += 1
+    return node
+  }
+
+  // 昔之「乙」者今其是矣。
+  private scanReassignStatement() {
+    const to: Identifier = {
+      type: 'Identifier',
+      name: this.next.value as any,
+    }
+    this.index += 2
+
+    if (this.current.value === 'conj')
+      this.index += 1
+
+    let from: Identifier | Answer = 'Answer'
+
+    if (this.next.type === TokenType.Identifier) {
+      from = {
+        type: 'Identifier',
+        name: this.next.value as any,
+      }
+    }
+    else if (this.next.type === TokenType.Answer) {
+      from = 'Answer'
+    }
+    else {
+      this.throwUnexpectedToken('Expecting identifier or answer')
+    }
+
+    const node: ReassignStatement = {
+      type: 'ReassignStatement',
+      from,
+      to,
+    }
+
+    this.index += 3
+
     return node
   }
 
@@ -477,7 +531,8 @@ export class Parser {
     if (this.current.value === 'else')
       node.else = this.scanIfStatement()
 
-    this.index += 1
+    if (this.current.value === 'end')
+      this.index += 1
 
     return node
   }
