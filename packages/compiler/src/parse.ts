@@ -1,4 +1,4 @@
-import { Token, TokenType, AST, VariableDeclaration, VarType, ASTScope, Accessability, FunctionDeclaration, Statement, IfStatement, Expression, ReturnStatement, FunctionCall, OperationStatement, BinaryOperation } from './types'
+import { Token, TokenType, AST, VariableDeclaration, VarType, ASTScope, Accessability, FunctionDeclaration, Statement, IfStatement, Expression, ReturnStatement, FunctionCall, OperationStatement, BinaryOperation, WhileStatement } from './types'
 import { Tokenizer } from './tokenize'
 import { Messages } from './messages'
 import { ErrorHandler } from './errors/handler'
@@ -194,6 +194,12 @@ export class Parser {
       // operation
       if (this.current.type === TokenType.Operator) {
         this.pushAST(this.scanOperationStatement())
+        continue
+      }
+
+      // while
+      if (this.current.value === 'whileTrue') {
+        this.pushAST(this.scanWhileTrue())
         continue
       }
 
@@ -398,6 +404,18 @@ export class Parser {
     return node
   }
 
+  private scanWhileTrue() {
+    const node: WhileStatement = {
+      type: 'WhileStatement',
+      condition: true,
+      body: [],
+    }
+    this.index += 1
+    this.parseScope(node, () => this.current.value === 'end')
+    this.index += 1
+    return node
+  }
+
   private scanIfStatement() {
     let condition: Expression | undefined
 
@@ -443,6 +461,8 @@ export class Parser {
 
     if (this.current.value === 'else')
       node.else = this.scanIfStatement()
+
+    this.index += 1
 
     return node
   }

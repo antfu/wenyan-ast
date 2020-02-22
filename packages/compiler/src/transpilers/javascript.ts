@@ -1,5 +1,5 @@
 /* eslint-disable no-case-declarations */
-import { AST, ASTScope, VarType, Accessability, IfStatement, ASTValue, Expression, FunctionCall } from '../types'
+import { AST, ASTScope, VarType, Accessability, IfStatement, ASTValue, Expression, FunctionCall, WhileStatement } from '../types'
 import { Transplier } from './base'
 
 export class JavascriptTranspiler extends Transplier {
@@ -76,6 +76,10 @@ export class JavascriptTranspiler extends Transplier {
     if (s.else)
       code += `else ${this.transIf(s.else)}`
     return code
+  }
+
+  private transWhile(s: WhileStatement) {
+    return `while(${this.transExpressions(s.condition)}){${this.transpileScope(s)}};`
   }
 
   private transpileValue(node: ASTValue) {
@@ -159,6 +163,10 @@ export class JavascriptTranspiler extends Transplier {
 
         case 'IfStatement':
           code += this.transIf(s)
+          break
+
+        case 'WhileStatement':
+          code += this.transWhile(s)
           break
 
         case 'ReturnStatement':

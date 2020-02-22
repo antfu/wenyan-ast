@@ -44,7 +44,7 @@ export const KEYWORDS_ALL = {
   云云: { type: TokenType.Control, value: 'end' },
   凡: { type: TokenType.Control, value: 'for' },
   中之: { type: TokenType.Control, value: 'forIn' },
-  恆為是: { type: TokenType.Control, value: 'whiletrue' },
+  恆為是: { type: TokenType.Control, value: 'whileTrue' },
   為是: { type: TokenType.Control, value: 'whileN0' },
   遍: { type: TokenType.Control, value: 'whileN1' },
   乃止: { type: TokenType.Control, value: 'break' },
