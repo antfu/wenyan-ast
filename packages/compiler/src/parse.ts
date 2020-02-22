@@ -1,4 +1,4 @@
-import { Token, TokenType, AST, VariableDeclaration, VarType, ASTScope, Accessability, FunctionDeclaration, Program, Statement, IfStatement, Expression, ReturnStatement, FunctionCall } from './types'
+import { Token, TokenType, AST, VariableDeclaration, VarType, ASTScope, Accessability, FunctionDeclaration, Statement, IfStatement, Expression, ReturnStatement, FunctionCall, OperationStatement, BinaryOperation } from './types'
 import { Tokenizer } from './tokenize'
 import { Messages } from './messages'
 import { ErrorHandler } from './errors/handler'
@@ -102,22 +102,6 @@ export class Parser {
     return this.tokens[this.index + 3]
   }
 
-  private get next4() {
-    return this.tokens[this.index + 4]
-  }
-
-  private get next5() {
-    return this.tokens[this.index + 5]
-  }
-
-  private get prev() {
-    return this.tokens[this.index - 2]
-  }
-
-  private get prev2() {
-    return this.tokens[this.index - 1]
-  }
-
   protected get scope() {
     return this.scopeStack[0]
   }
@@ -137,19 +121,32 @@ export class Parser {
   private parseScope(scope: ASTScope, shouldExit = () => false) {
     // console.log(this.tokens.map(i => i.type))
     this.pushScope(scope)
+    let prev_index = this.index - 1
+
     while (!this.eof && !shouldExit()) {
+      if (prev_index === this.index)
+        this.throwUnexpectedToken()
+      prev_index = this.index
+
+      // var declarion
       if (this.current.type === TokenType.Declarion) {
         this.pushAST(this.scanDeclarion())
         continue
       }
+
+      // function declarion
       if (this.current.type === TokenType.PropertyDeclarion) {
         this.pushAST(this.scanPropertyDeclarion())
         continue
       }
+
+      // function start
       if (this.current.value === 'functionStart') {
         this.pushAST(this.scanFunctionDeclarion())
         continue
       }
+
+      // if
       if (this.current.value === 'if'
         || this.current.value === 'ifTrue'
         || this.current.value === 'ifFalse'
@@ -157,10 +154,14 @@ export class Parser {
         this.pushAST(this.scanIfStatement())
         continue
       }
+
+      // return
       if (this.current.value?.toString().startsWith('return')) {
         this.pushAST(this.scanReturnStatement())
         continue
       }
+
+      // continue
       if (this.current.value === 'continue') {
         this.pushAST({
           type: 'ContinueStatement',
@@ -168,6 +169,17 @@ export class Parser {
         this.index += 1
         continue
       }
+
+      // break
+      if (this.current.value === 'break') {
+        this.pushAST({
+          type: 'BreakStatement',
+        })
+        this.index += 1
+        continue
+      }
+
+      // function call
       if (this.current.type === TokenType.Call) {
         if (this.current.value === 'right') {
           this.pushAST(this.scanFunctionCallRight())
@@ -176,6 +188,12 @@ export class Parser {
           // TODO:
           this.throwUnexpectedToken()
         }
+        continue
+      }
+
+      // operation
+      if (this.current.type === TokenType.Operator) {
+        this.pushAST(this.scanOperationStatement())
         continue
       }
 
@@ -450,6 +468,51 @@ export class Parser {
     }
     else if (this.current.value === 'returnVoid') {
       this.index += 1
+    }
+
+    return node
+  }
+
+  // 除十三以十。名之曰「乙」。
+  private scanOperationStatement() {
+    this.typeassert(this.next, [TokenType.String, TokenType.Number, TokenType.Bool, TokenType.Answer, TokenType.Identifier])
+    this.typeassert(this.next2, TokenType.OpOrd)
+    this.typeassert(this.next3, [TokenType.String, TokenType.Number, TokenType.Bool, TokenType.Answer, TokenType.Identifier])
+
+    const expression: BinaryOperation = {
+      type: 'BinaryOperation',
+      operator: this.current.value as any,
+      left: this.parseExpressions([this.next]),
+      right: this.parseExpressions([this.next3]),
+    }
+
+    // 於
+    if (this.next2.value === 'right')
+      [expression.left, expression.right] = [expression.right, expression.left]
+
+    this.index += 4
+
+    if (this.current.type === TokenType.Operator && this.current.value === 'mod') {
+      if (expression.operator === '/')
+        expression.operator = 'mod'
+      else
+        this.throwUnexpectedToken('所餘幾何 should follow by 除')
+      this.index += 1
+    }
+
+    const node: OperationStatement = {
+      type: 'OperationStatement',
+      expression,
+    }
+
+    // 名之曰「乙」。
+    if (this.current.type === TokenType.Name) {
+      this.typeassert(this.next, TokenType.Identifier)
+      node.name = {
+        type: 'Identifier',
+        name: this.next.value as any,
+      }
+      this.index += 2
     }
 
     return node

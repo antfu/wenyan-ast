@@ -39,7 +39,10 @@ export class JavascriptTranspiler extends Transplier {
         return `${op}(${this.transExpressions(i.expression)})`
       }
       else if (i.type === 'BinaryOperation') {
-        return `${this.transExpressions(i.left)}${i.operator}${this.transExpressions(i.right)}`
+        let operator = i.operator as string
+        if (operator === 'mod')
+          operator = '%'
+        return `${this.transExpressions(i.left)}${operator}${this.transExpressions(i.right)}`
       }
       else if (i.type === 'Value') {
         return this.transpileValue(i)
@@ -166,7 +169,16 @@ export class JavascriptTranspiler extends Transplier {
           break
 
         case 'ContinueStatement':
-          code += 'continue'
+          code += 'continue;'
+          break
+
+        case 'BreakStatement':
+          code += 'break;'
+          break
+
+        case 'OperationStatement':
+          const exp = this.transExpressions(s.expression)
+          code += `let ${s.name?.name || this.nextVar()}=${exp};`
           break
 
         case 'FunctionCall':

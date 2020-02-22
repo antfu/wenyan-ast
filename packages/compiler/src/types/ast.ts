@@ -61,7 +61,7 @@ export type UnaryOperation = {
 export type BinaryOperation = {
   type: 'BinaryOperation'
   left: Expression
-  operator: '&&' | '||' | '==' | '+' | '-'|'*'|'/'
+  operator: '&&' | '||' | '==' | '+' | '-' | '*' | '/' | 'mod'
   right: Expression
 }
 
@@ -125,9 +125,14 @@ export interface ContinueStatement extends Node {
   type: 'ContinueStatement'
 }
 
-export interface ExpressionStatement extends Node {
-  type: 'ExpressionStatement'
+export interface BreakStatement extends Node {
+  type: 'BreakStatement'
+}
+
+export interface OperationStatement extends Node {
+  type: 'OperationStatement'
   expression: Expression
+  name?: Identifier
 }
 
 export interface FunctionCall extends Node {
@@ -151,8 +156,9 @@ export type Statement =
   | TryStatement
   | CatchStatement
   | ReturnStatement
-  | ExpressionStatement
+  | OperationStatement
   | ContinueStatement
+  | BreakStatement
 
 export type ASTScope =
   | Program
