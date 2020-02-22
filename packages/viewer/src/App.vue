@@ -22,6 +22,7 @@
       .tab-content(v-show='tab === 1')
         ast-viewer(
           :node='ast'
+          :expanded='true'
           @mouseover='highlight'
           @mouseleave='clearHighlight'
         )

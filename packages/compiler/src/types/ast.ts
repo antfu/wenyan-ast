@@ -84,7 +84,7 @@ export type Expression =
   | ASTValue
   | Answer
 
-export interface Identifier {
+export interface Identifier extends Node {
   type: 'Identifier'
   name: string
   declare?: boolean

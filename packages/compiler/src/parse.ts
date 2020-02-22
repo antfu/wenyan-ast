@@ -1,4 +1,4 @@
-import { Token, TokenType, AST, VariableDeclaration, VarType, ASTScope, Accessability, FunctionDeclaration, Statement, IfStatement, Expression, ReturnStatement, FunctionCall, OperationStatement, BinaryOperation, WhileStatement, ExpressStatement, Identifier, ReassignStatement, Answer, ForRangeStatement } from './types'
+import { Token, TokenType, AST, VariableDeclaration, VarType, ASTScope, Accessability, FunctionDeclaration, Statement, IfStatement, Expression, ReturnStatement, FunctionCall, OperationStatement, BinaryOperation, WhileStatement, ExpressStatement, Identifier, ReassignStatement, Answer, ForRangeStatement, Position, ContinueStatement, BreakStatement, CommentStatement, PrintStatement, ASTValue } from './types'
 import { Tokenizer } from './tokenize'
 import { Messages } from './messages'
 import { ErrorHandler } from './errors/handler'
@@ -81,6 +81,10 @@ export class Parser {
     return this.index >= this._length
   }
 
+  private get prev() {
+    return this.tokens[this.index - 1]
+  }
+
   private get current() {
     return this.tokens[this.index]
   }
@@ -133,12 +137,7 @@ export class Parser {
 
       node.count = 1
       node.varType = this.next.value as VarType
-      node.values = [{
-        type: 'Value',
-        varType: node.varType,
-        value: this.next2.value as string,
-        loc: this.sourcemap ? this.next.loc : undefined,
-      }]
+      node.values = [this.tokenToValue(this.next2, node.varType)]
       this.index += 3
       // 名之曰「甲」
       if (!this.eof && this.current.type === TokenType.Name) {
@@ -159,12 +158,7 @@ export class Parser {
       this.index += 3
       // 曰一。曰三。曰五
       while (!this.eof && this.current.type === TokenType.Assign) {
-        node.values.push({
-          type: 'Value',
-          varType: node.varType,
-          value: this.next.value as unknown as string,
-          loc: this.sourcemap ? this.next.loc : undefined,
-        })
+        node.values.push(this.tokenToValue(this.next, node.varType))
         this.index += 2
       }
       // 名之曰「甲」
@@ -206,59 +200,29 @@ export class Parser {
 
   // 施「漢諾塔」於「盤數」。於一。於二。於三。名之曰「史」。
   private scanFunctionCallRight() {
-    this.typeassert(this.next, TokenType.Identifier, 'identifier')
-
     const node: FunctionCall = {
       type: 'FunctionCall',
-      function: {
-        type: 'Identifier',
-        name: this.next.value as string,
-      },
+      function: this.tokenToIdentifier(this.next),
       args: [],
     }
     this.index += 2
     while (!this.eof && this.current.type === TokenType.OperationOrder && this.current.value === 'right') {
-      if (this.next.type === TokenType.Answer) {
+      if (this.next.type === TokenType.Answer)
         node.args.push('Answer')
-      }
-      else if (this.next.type === TokenType.Identifier) {
-        node.args.push({
-          type: 'Identifier',
-          name: this.next.value as string,
-        })
-      }
-      else if (this.next.type === TokenType.Number) {
-        node.args.push({
-          type: 'Value',
-          varType: VarType.Number,
-          value: this.next.value,
-        })
-      }
-      else if (this.next.type === TokenType.String) {
-        node.args.push({
-          type: 'Value',
-          varType: VarType.String,
-          value: this.next.value,
-        })
-      }
-      else if (this.next.type === TokenType.Bool) {
-        node.args.push({
-          type: 'Value',
-          varType: VarType.Boolean,
-          value: this.next.value,
-        })
-      }
-      else {
+
+      else if (this.next.type === TokenType.Identifier)
+        node.args.push(this.tokenToIdentifier(this.next))
+
+      else if (this.next.type === TokenType.Number || this.next.type === TokenType.String || this.next.type === TokenType.Bool)
+        node.args.push(this.tokenToValue(this.next))
+
+      else
         this.throwUnexpectedToken()
-      }
+
       this.index += 2
     }
     if (this.current.type === TokenType.Name) {
-      this.typeassert(this.next, TokenType.Identifier, 'identifier')
-      node.assign = {
-        type: 'Identifier',
-        name: this.next.value,
-      }
+      node.assign = this.tokenToIdentifier(this.next)
       this.index += 2
     }
     return node
@@ -510,10 +474,7 @@ export class Parser {
   private scanName() {
     if (this.current.type === TokenType.Name) {
       this.typeassert(this.next, TokenType.Identifier)
-      const name: Identifier = {
-        type: 'Identifier',
-        name: this.next.value as any,
-      }
+      const name: Identifier = this.tokenToIdentifier(this.next)
       this.index += 2
       return name
     }
@@ -524,6 +485,27 @@ export class Parser {
     return {
       type: 'Identifier',
       name: token.value as string,
+      loc: token.loc,
+    }
+  }
+
+  private tokenToValue(token: Token, varType?: VarType): ASTValue {
+    if (!varType) {
+      varType = ({
+        [TokenType.Number]: VarType.Number,
+        [TokenType.String]: VarType.String,
+        [TokenType.Bool]: VarType.Boolean,
+      } as Record<TokenType, VarType>)[token.type]
+    }
+
+    if (!varType)
+      this.throwUnexpectedToken(`Expecting value token, got ${token.type}`)
+
+    return {
+      type: 'Value',
+      varType,
+      value: token.value as any,
+      loc: token.loc,
     }
   }
 
@@ -562,29 +544,17 @@ export class Parser {
       return true
 
     if (tokens.length === 1) {
-      if (tokens[0].type === TokenType.Bool) {
+      if (tokens[0].type === TokenType.Bool)
         return tokens[0].value
-      }
-      else if (tokens[0].type === TokenType.Answer) {
+
+      else if (tokens[0].type === TokenType.Answer)
         return 'Answer'
-      }
-      else if (tokens[0].type === TokenType.Identifier) {
+
+      else if (tokens[0].type === TokenType.Identifier)
         return this.tokenToIdentifier(tokens[0])
-      }
-      else if (tokens[0].type === TokenType.String) {
-        return {
-          type: 'Value',
-          varType: VarType.String,
-          value: tokens[0].value,
-        }
-      }
-      else if (tokens[0].type === TokenType.Number) {
-        return {
-          type: 'Value',
-          varType: VarType.Number,
-          value: tokens[0].value as number,
-        }
-      }
+
+      else if (tokens[0].type === TokenType.String || tokens[0].type === TokenType.Number)
+        return this.tokenToValue(tokens[0])
     }
 
     if (tokens.length === 2) {
@@ -638,13 +608,12 @@ export class Parser {
     return this.scope.body.pop()
   }
 
-  private pushAST(statement: Statement) {
+  private pushAST(statement: Statement, start: Position, end: Position = this.prev.loc.end) {
+    statement.loc = { start, end }
     this.scope.body.push(statement)
   }
 
   private parseScope(scope: ASTScope, shouldExit = () => false) {
-    console.log('SCOPE', this.current)
-
     this.pushScope(scope)
     let prev_index = this.index - 1
 
@@ -653,21 +622,23 @@ export class Parser {
         this.throwUnexpectedToken()
       prev_index = this.index
 
+      const start = this.current.loc.start
+
       // var declarion
       if (this.current.type === TokenType.Declarion) {
-        this.pushAST(this.scanDeclarion())
+        this.pushAST(this.scanDeclarion(), start)
         continue
       }
 
       // property declarion
       if (this.current.type === TokenType.PropertyDeclarion) {
-        this.pushAST(this.scanPropertyDeclarion())
+        this.pushAST(this.scanPropertyDeclarion(), start)
         continue
       }
 
       // function body
       if (this.current.value === 'functionStart' || this.current.value === 'functionBody') {
-        this.pushAST(this.scanFunctionDeclarion())
+        this.pushAST(this.scanFunctionDeclarion(), start)
         continue
       }
 
@@ -676,38 +647,40 @@ export class Parser {
         || this.current.value === 'ifTrue'
         || this.current.value === 'ifFalse'
       ) {
-        this.pushAST(this.scanIfStatement())
+        this.pushAST(this.scanIfStatement(), start)
         continue
       }
 
       // return
       if (this.current.value?.toString().startsWith('return')) {
-        this.pushAST(this.scanReturnStatement())
+        this.pushAST(this.scanReturnStatement(), start)
         continue
       }
 
       // continue
       if (this.current.value === 'continue') {
-        this.pushAST({
+        const node: ContinueStatement = {
           type: 'ContinueStatement',
-        })
+        }
         this.index += 1
+        this.pushAST(node, start)
         continue
       }
 
       // break
       if (this.current.value === 'break') {
-        this.pushAST({
+        const node: BreakStatement = {
           type: 'BreakStatement',
-        })
+        }
         this.index += 1
+        this.pushAST(node, start)
         continue
       }
 
       // function call
       if (this.current.type === TokenType.Call) {
         if (this.current.value === 'right') {
-          this.pushAST(this.scanFunctionCallRight())
+          this.pushAST(this.scanFunctionCallRight(), start)
         }
         else {
           // TODO:
@@ -718,49 +691,51 @@ export class Parser {
 
       // operation
       if (this.current.type === TokenType.Operator) {
-        this.pushAST(this.scanOperationStatement())
+        this.pushAST(this.scanOperationStatement(), start)
         continue
       }
 
       // while
       if (this.current.value === 'whileTrue') {
-        this.pushAST(this.scanWhileTrue())
+        this.pushAST(this.scanWhileTrue(), start)
         continue
       }
 
       // express
       if (this.current.type === TokenType.Express) {
-        this.pushAST(this.scanExpressStatement())
+        this.pushAST(this.scanExpressStatement(), start)
         continue
       }
 
       // print
       if (this.current.value === 'print') {
-        this.pushAST({
+        const node: PrintStatement = {
           type: 'PrintStatement',
-        })
+        }
         this.index += 1
+        this.pushAST(node, start)
         continue
       }
 
       // comments
       if (this.current.type === TokenType.Comment) {
-        this.pushAST({
+        const node: CommentStatement = {
           type: 'CommentStatement',
           value: this.current.value as string,
-        })
+        }
         this.index += 1
+        this.pushAST(node, start)
         continue
       }
 
       // reassign
       if (this.current.value === 'reassign1') {
-        this.pushAST(this.scanReassignStatement())
+        this.pushAST(this.scanReassignStatement(), start)
         continue
       }
 
       if (this.current.value === 'forRange1') {
-        this.pushAST(this.scanForRangeStatement())
+        this.pushAST(this.scanForRangeStatement(), start)
         continue
       }
 
