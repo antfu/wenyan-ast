@@ -72,8 +72,8 @@ export const KEYWORDS_ALL = {
   凡: { type: TokenType.Control, value: 'for' },
   中之: { type: TokenType.Control, value: 'forIn' },
   恆為是: { type: TokenType.Control, value: 'whileTrue' },
-  為是: { type: TokenType.Control, value: 'whileN0' },
-  遍: { type: TokenType.Control, value: 'whileN1' },
+  為是: { type: TokenType.Control, value: 'forRange1' },
+  遍: { type: TokenType.Control, value: 'forRange2' },
   乃止: { type: TokenType.Control, value: 'break' },
   乃止是遍: { type: TokenType.Control, value: 'continue' },
 

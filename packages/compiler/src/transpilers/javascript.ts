@@ -1,12 +1,12 @@
 /* eslint-disable no-case-declarations */
-import { AST, ASTScope, VarType, Accessability, IfStatement, ASTValue, Expression, FunctionCall, WhileStatement, ExpressStatement, PrintStatement, ReassignStatement, AssignTarget } from '../types'
+import { AST, ASTScope, VarType, Accessability, IfStatement, ASTValue, Expression, FunctionCall, WhileStatement, ExpressStatement, PrintStatement, ReassignStatement, AssignTarget, ForRangeStatement } from '../types'
 import { Transplier } from './base'
 
 export class JavascriptTranspiler extends Transplier {
   name = 'javascript'
 
   transpile(ast: AST): string {
-    return this.transpileScope(ast)
+    return this.transScope(ast)
   }
 
   private escapeQuote(str: string) {
@@ -17,6 +17,12 @@ export class JavascriptTranspiler extends Transplier {
     return accessability === Accessability.public
       ? `let ${name}=this.${name}=`
       : `let ${name}=`
+  }
+
+  private transForRangeStatement(s: ForRangeStatement) {
+    const name = s.assign?.name || this.randomVar()
+    const range = typeof s.range === 'number' ? s.range : s.range.name
+    return `for (let ${name}=0;${name}<${range};${name}++){${this.transScope(s)}}`
   }
 
   private transExpressions(expressions: Expression | Expression[]): string {
@@ -80,9 +86,9 @@ export class JavascriptTranspiler extends Transplier {
   private transIf(s: IfStatement) {
     let code = ''
     if (s.condition != null)
-      code = `if(${this.transExpressions(s.condition)}){${this.transpileScope(s)}}`
+      code = `if(${this.transExpressions(s.condition)}){${this.transScope(s)}}`
     else
-      code = `{${this.transpileScope(s)}}`
+      code = `{${this.transScope(s)}}`
     if (s.else)
       code += `else ${this.transIf(s.else)}`
     return code
@@ -93,7 +99,7 @@ export class JavascriptTranspiler extends Transplier {
   }
 
   private transWhile(s: WhileStatement) {
-    return `while(${this.transExpressions(s.condition)}){${this.transpileScope(s)}};`
+    return `while(${this.transExpressions(s.condition)}){${this.transScope(s)}};`
   }
 
   private transpileValue(node: ASTValue) {
@@ -139,7 +145,7 @@ export class JavascriptTranspiler extends Transplier {
     return this.transAssign(s.assign, this.transExpressions(s.value))
   }
 
-  private transpileScope(scope: ASTScope) {
+  private transScope(scope: ASTScope) {
     let code = ''
     const strayVars = []
 
@@ -180,7 +186,7 @@ export class JavascriptTranspiler extends Transplier {
             starts = '()=>{'
             ends = '};'
           }
-          code += this.getAccessDecaleration(name, s.accessability) + starts + this.transpileScope(s) + ends
+          code += this.getAccessDecaleration(name, s.accessability) + starts + this.transScope(s) + ends
           break
 
         case 'IfStatement':
@@ -229,6 +235,10 @@ export class JavascriptTranspiler extends Transplier {
 
         case 'ReassignStatement':
           code += this.transReassignStatement(s)
+          break
+
+        case 'ForRangeStatement':
+          code += this.transForRangeStatement(s)
           break
 
         default:

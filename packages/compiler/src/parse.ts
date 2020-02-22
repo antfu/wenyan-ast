@@ -1,4 +1,4 @@
-import { Token, TokenType, AST, VariableDeclaration, VarType, ASTScope, Accessability, FunctionDeclaration, Statement, IfStatement, Expression, ReturnStatement, FunctionCall, OperationStatement, BinaryOperation, WhileStatement, ExpressStatement, Identifier, ReassignStatement, Answer } from './types'
+import { Token, TokenType, AST, VariableDeclaration, VarType, ASTScope, Accessability, FunctionDeclaration, Statement, IfStatement, Expression, ReturnStatement, FunctionCall, OperationStatement, BinaryOperation, WhileStatement, ExpressStatement, Identifier, ReassignStatement, Answer, ForRangeStatement } from './types'
 import { Tokenizer } from './tokenize'
 import { Messages } from './messages'
 import { ErrorHandler } from './errors/handler'
@@ -111,130 +111,6 @@ export class Parser {
 
   protected popScope() {
     return this.scopeStack.shift()
-  }
-
-  private parseScope(scope: ASTScope, shouldExit = () => false) {
-    console.log('SCOPE', this.current)
-
-    this.pushScope(scope)
-    let prev_index = this.index - 1
-
-    while (!this.eof && !shouldExit()) {
-      if (prev_index === this.index)
-        this.throwUnexpectedToken()
-      prev_index = this.index
-
-      // var declarion
-      if (this.current.type === TokenType.Declarion) {
-        this.pushAST(this.scanDeclarion())
-        continue
-      }
-
-      // property declarion
-      if (this.current.type === TokenType.PropertyDeclarion) {
-        this.pushAST(this.scanPropertyDeclarion())
-        continue
-      }
-
-      // function body
-      if (this.current.value === 'functionStart' || this.current.value === 'functionBody') {
-        this.pushAST(this.scanFunctionDeclarion())
-        continue
-      }
-
-      // if
-      if (this.current.value === 'if'
-        || this.current.value === 'ifTrue'
-        || this.current.value === 'ifFalse'
-      ) {
-        this.pushAST(this.scanIfStatement())
-        continue
-      }
-
-      // return
-      if (this.current.value?.toString().startsWith('return')) {
-        this.pushAST(this.scanReturnStatement())
-        continue
-      }
-
-      // continue
-      if (this.current.value === 'continue') {
-        this.pushAST({
-          type: 'ContinueStatement',
-        })
-        this.index += 1
-        continue
-      }
-
-      // break
-      if (this.current.value === 'break') {
-        this.pushAST({
-          type: 'BreakStatement',
-        })
-        this.index += 1
-        continue
-      }
-
-      // function call
-      if (this.current.type === TokenType.Call) {
-        if (this.current.value === 'right') {
-          this.pushAST(this.scanFunctionCallRight())
-        }
-        else {
-          // TODO:
-          this.throwUnexpectedToken()
-        }
-        continue
-      }
-
-      // operation
-      if (this.current.type === TokenType.Operator) {
-        this.pushAST(this.scanOperationStatement())
-        continue
-      }
-
-      // while
-      if (this.current.value === 'whileTrue') {
-        this.pushAST(this.scanWhileTrue())
-        continue
-      }
-
-      // express
-      if (this.current.type === TokenType.Express) {
-        this.pushAST(this.scanExpressStatement())
-        continue
-      }
-
-      // print
-      if (this.current.value === 'print') {
-        this.pushAST({
-          type: 'PrintStatement',
-        })
-        this.index += 1
-        continue
-      }
-
-      // comments
-      if (this.current.type === TokenType.Comment) {
-        this.pushAST({
-          type: 'CommentStatement',
-          value: this.current.value as string,
-        })
-        this.index += 1
-        continue
-      }
-
-      // reassign
-      if (this.current.type === TokenType.Reassign && this.current.value === 'reassign1') {
-        this.pushAST(this.scanReassignStatement())
-        continue
-      }
-
-      console.warn('Unhandled token ', this.current)
-
-      this.index++
-    }
-    return this.popScope()
   }
 
   // 吾有三數。曰一。曰三。曰五。名之曰「甲」曰「乙」曰「丙」。
@@ -461,20 +337,25 @@ export class Parser {
 
   // 昔之「乙」者今其是矣。
   private scanReassignStatement() {
-    const assign: Identifier = {
-      type: 'Identifier',
-      name: this.next.value as any,
-    }
-    this.index += 2
+    this.index += 1
+
+    const value = this.scanExpression(t => t.type === TokenType.Control || t.value === 'end')
+
+    this.index += 1
 
     if (this.current.value === 'conj')
       this.index += 1
 
     this.index += 1
 
+    const assign: Identifier = {
+      type: 'Identifier',
+      name: this.current.value as any,
+    }
+
     const node: ReassignStatement = {
       type: 'ReassignStatement',
-      value: this.scanExpression(t => t.value === 'reassign3' || t.value === 'end'),
+      value,
       assign,
     }
 
@@ -542,9 +423,14 @@ export class Parser {
 
     const tokens = [this.current]
 
-    if (this.next.type === TokenType.ArrayOperator) {
+    if (this.next.value === 'length') {
       tokens.push(this.next)
       this.index += 1
+    }
+    if (this.next.value === 'item') {
+      tokens.push(this.next)
+      tokens.push(this.next2)
+      this.index += 2
     }
 
     this.index += 1
@@ -643,6 +529,36 @@ export class Parser {
     }
   }
 
+  // 為是「幾何」遍。
+  private scanForRangeStatement() {
+    let range: number | Identifier
+
+    if (this.next.type === TokenType.Number)
+      range = this.next.value as number
+
+    else if (this.next.type === TokenType.Identifier)
+      range = this.tokenToIdentifier(this.next)
+
+    else
+      this.throwUnexpectedToken('Expecting number or identifier')
+
+    this.assert(this.next2.value === 'forRange2', 'expecting 遍')
+
+    const node: ForRangeStatement = {
+      type: 'ForRangeStatement',
+      range,
+      body: [],
+    }
+
+    this.index += 3
+
+    this.parseScope(node, () => this.current.value === 'end')
+
+    this.index += 1
+
+    return node
+  }
+
   private parseExpressions(tokens: Token[]): Expression {
     if (tokens.length === 0)
       return true
@@ -706,7 +622,7 @@ export class Parser {
       if (conditionIndex > 0) {
         return {
           type: 'BinaryOperation',
-          operator: tokens[1].value as any,
+          operator: tokens[conditionIndex].value as any,
           left: this.parseExpressions(tokens.slice(0, conditionIndex)),
           right: this.parseExpressions(tokens.slice(conditionIndex + 1)),
         }
@@ -726,6 +642,135 @@ export class Parser {
 
   private pushAST(statement: Statement) {
     this.scope.body.push(statement)
+  }
+
+  private parseScope(scope: ASTScope, shouldExit = () => false) {
+    console.log('SCOPE', this.current)
+
+    this.pushScope(scope)
+    let prev_index = this.index - 1
+
+    while (!this.eof && !shouldExit()) {
+      if (prev_index === this.index)
+        this.throwUnexpectedToken()
+      prev_index = this.index
+
+      // var declarion
+      if (this.current.type === TokenType.Declarion) {
+        this.pushAST(this.scanDeclarion())
+        continue
+      }
+
+      // property declarion
+      if (this.current.type === TokenType.PropertyDeclarion) {
+        this.pushAST(this.scanPropertyDeclarion())
+        continue
+      }
+
+      // function body
+      if (this.current.value === 'functionStart' || this.current.value === 'functionBody') {
+        this.pushAST(this.scanFunctionDeclarion())
+        continue
+      }
+
+      // if
+      if (this.current.value === 'if'
+        || this.current.value === 'ifTrue'
+        || this.current.value === 'ifFalse'
+      ) {
+        this.pushAST(this.scanIfStatement())
+        continue
+      }
+
+      // return
+      if (this.current.value?.toString().startsWith('return')) {
+        this.pushAST(this.scanReturnStatement())
+        continue
+      }
+
+      // continue
+      if (this.current.value === 'continue') {
+        this.pushAST({
+          type: 'ContinueStatement',
+        })
+        this.index += 1
+        continue
+      }
+
+      // break
+      if (this.current.value === 'break') {
+        this.pushAST({
+          type: 'BreakStatement',
+        })
+        this.index += 1
+        continue
+      }
+
+      // function call
+      if (this.current.type === TokenType.Call) {
+        if (this.current.value === 'right') {
+          this.pushAST(this.scanFunctionCallRight())
+        }
+        else {
+          // TODO:
+          this.throwUnexpectedToken()
+        }
+        continue
+      }
+
+      // operation
+      if (this.current.type === TokenType.Operator) {
+        this.pushAST(this.scanOperationStatement())
+        continue
+      }
+
+      // while
+      if (this.current.value === 'whileTrue') {
+        this.pushAST(this.scanWhileTrue())
+        continue
+      }
+
+      // express
+      if (this.current.type === TokenType.Express) {
+        this.pushAST(this.scanExpressStatement())
+        continue
+      }
+
+      // print
+      if (this.current.value === 'print') {
+        this.pushAST({
+          type: 'PrintStatement',
+        })
+        this.index += 1
+        continue
+      }
+
+      // comments
+      if (this.current.type === TokenType.Comment) {
+        this.pushAST({
+          type: 'CommentStatement',
+          value: this.current.value as string,
+        })
+        this.index += 1
+        continue
+      }
+
+      // reassign
+      if (this.current.value === 'reassign1') {
+        this.pushAST(this.scanReassignStatement())
+        continue
+      }
+
+      if (this.current.value === 'forRange1') {
+        this.pushAST(this.scanForRangeStatement())
+        continue
+      }
+
+      console.warn('Unhandled token ', this.current)
+
+      this.index++
+    }
+    return this.popScope()
   }
 
   private assert(bool: boolean, message = Messages.UnexpectedTokenIllegal) {

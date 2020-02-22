@@ -105,11 +105,11 @@ export interface WhileStatement extends Node {
   body: Statement[]
 }
 
-export interface ForInStatement extends Node {
-  type: 'ForInStatement'
+export interface ForRangeStatement extends Node {
+  type: 'ForRangeStatement'
   body: Statement[]
-  iterator: string
-  collection: Identifier | number
+  assign?: Identifier
+  range: Identifier | number
 }
 
 export interface TryStatement extends Node {
@@ -186,7 +186,7 @@ export type Statement =
   | FunctionDeclaration
   | IfStatement
   | WhileStatement
-  | ForInStatement
+  | ForRangeStatement
   | FunctionCall
   | TryStatement
   | CatchStatement
@@ -204,6 +204,6 @@ export type ASTScope =
   | FunctionDeclaration
   | IfStatement
   | WhileStatement
-  | ForInStatement
+  | ForRangeStatement
   | TryStatement
   | CatchStatement
