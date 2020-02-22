@@ -1,5 +1,5 @@
 <template lang="pug">
-.token-viewer
+.token-viewer.viewer
   .token(
     v-for='(token, idx) in tokens'
     :key='idx'
@@ -45,19 +45,4 @@ export default {
 
     .bracket, .comma
       opacity 0.3
-
-    .value.string
-      color #42b983
-
-      &:before, &:after
-        content '"'
-
-    .value.number
-      color: #fc1e70
-
-    .value.undefined
-      color #e08331
-
-      &:before
-        content 'undefined'
 </style>

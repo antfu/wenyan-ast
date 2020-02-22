@@ -20,7 +20,11 @@
           @mouseleave='clearHighlight'
         )
       .tab-content(v-show='tab === 1')
-        json-viewer(:value='ast' :expand-depth='2')
+        ast-viewer(
+          :node='ast'
+          @mouseover='highlight'
+          @mouseleave='clearHighlight'
+        )
       .tab-content.compiled(v-show='tab === 2')
         codemirror(:value='compiled' :options='{mode: "javascript", readOnly: true}' ref='cm2')
       .tab-content(v-show='tab === 3')
@@ -38,13 +42,9 @@ import { useStoragePlain } from '@vueuse/core'
 import { Compiler, Program, Token, SourceLocation } from '../../compiler/src'
 import { printError } from '../../cli/src/error-log'
 import examples from '../../examples'
-import TokenViewer from './TokenViewer.vue'
 
 export default {
   name: 'App',
-  components: {
-    TokenViewer,
-  },
   setup() {
     const code = useStoragePlain('wenyan-parser-viewer-code', '')
     const compiled = ref('')
@@ -60,7 +60,7 @@ export default {
     watch(code, () => {
       console.clear()
       const compiler = new Compiler(code.value, {
-        sourcemap: false,
+        sourcemap: true,
       })
       try {
         compiler.run()
@@ -211,26 +211,28 @@ html, body
         margin 0
 
 .token-highlighted
-  background #42b98370
-  padding 3px 1px
-  margin -3px -1px
+  background #42b98330
+  margin -1px
   border-radius 3px
-  font-weight bold !important
+  border 1px solid #42b98350
 
-.jv-container
-  font-size 12px !important
+.viewer
+  color: #111111
+  font-size: 12px
+  font-family: Consolas, Menlo, Courier, monospace
 
-  .jv-code
-    padding 10px 5px !important
+  .value.string
+    color #42b983
 
-  .jv-node
-    margin-left 14px !important
+    &:before, &:after
+      content '"'
 
-  .jv-toggle
-    opacity 0.2
-    margin-right -10px !important
-    transform translateX(-12px)
+  .value.number, .value.boolean
+    color: #fc1e70
 
-    &:hover
-      opacity 0.8
+  .value.undefined
+    color #e08331
+
+    &:before
+      content 'undefined'
 </style>

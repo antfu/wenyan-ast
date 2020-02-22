@@ -112,9 +112,10 @@ export class Tokenizer {
       const id = this.source.slice(this.index, this.index + len)
 
       if (keywords[id]) {
+        const start = this.getPosition()
         const end = this.getPosition(len)
         this.index += len
-        this.pushToken(keywords[id], undefined, end)
+        this.pushToken(keywords[id], start, end)
         return true
       }
     }
@@ -135,6 +136,7 @@ export class Tokenizer {
   }
 
   public scanNumber() {
+    const start = this.getPosition()
     let chars = ''
     while (true) {
       const char = this.source[this.index]
@@ -145,7 +147,8 @@ export class Tokenizer {
       chars += char
       this.index++
     }
-    if (chars) this.pushToken({ type: TokenType.Number, value: hanzi2num(chars) || undefined })
+    if (chars)
+      this.pushToken({ type: TokenType.Number, value: hanzi2num(chars) || undefined }, start)
   }
 
   public scanComment() {

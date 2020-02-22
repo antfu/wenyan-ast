@@ -2,9 +2,9 @@ import Vue from 'vue'
 import VueCompositionApi from '@vue/composition-api'
 // @ts-ignore
 import VueCodemirror from 'vue-codemirror'
-// @ts-ignore
-import JsonViewer from 'vue-json-viewer'
 import App from './App.vue'
+import TokenViewer from './TokenViewer.vue'
+import AstViewer from './AstViewer.vue'
 
 import 'codemirror/lib/codemirror.css'
 import 'codemirror/mode/javascript/javascript.js'
@@ -14,7 +14,6 @@ import '@wenyanlang/highlight/wenyan-light.codemirror.css'
 
 Vue.config.productionTip = false
 Vue.use(VueCompositionApi)
-Vue.use(JsonViewer)
 Vue.use(VueCodemirror, {
   options: {
     theme: 'wenyan-light',
@@ -25,6 +24,8 @@ Vue.use(VueCodemirror, {
     indentWithTabs: true,
   },
 })
+Vue.component('AstViewer', AstViewer)
+Vue.component('TokenViewer', TokenViewer)
 
 new Vue({
   render: h => h(App),
