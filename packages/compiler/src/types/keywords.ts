@@ -1,4 +1,31 @@
-import { TokenType } from './types'
+export enum TokenType {
+  EOF = 'EOF',
+  Answer = 'Answer',
+  ArrayOperator = 'ArrayOperator',
+  Assign = 'Assign',
+  Bool = 'Bool',
+  Builtin = 'Builtin',
+  Call = 'Call',
+  Comment = 'Comment',
+  Control = 'Control',
+  Declarion = 'Declarion',
+  Express = 'Express',
+  Identifier = 'Identifier',
+  Import = 'Import',
+  Macro = 'Macro',
+  Name = 'Name',
+  Number = 'Number',
+  Operator = 'Operator',
+  ConditionOperator = 'ConditionOperator',
+  OperationOrder = 'OperationOrder',
+  Punctuations = 'Punctuations',
+  Reassign = 'Reassign',
+  String = 'String',
+  Throw = 'Throw',
+  Try = 'Try',
+  Type = 'Type',
+  PropertyDeclarion = 'PropertyDeclarion',
+}
 
 export const KEYWORDS_NUMBERS = '負·又零〇一二三四五六七八九十百千萬億兆京垓秭穰溝澗正載極分釐毫絲忽微纖沙塵埃渺漠'
 

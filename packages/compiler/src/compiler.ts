@@ -8,6 +8,7 @@ export interface CompileOptions {
   lang: 'js'
   errorHandler: ErrorHandler
   sourcemap: boolean
+  isModule: boolean
 }
 
 export class Compiler {
@@ -27,19 +28,18 @@ export class Compiler {
       lang = 'js',
       sourcemap = true,
       errorHandler = new ErrorHandler(),
+      isModule = false,
     } = options
 
     this.options = {
       lang,
       errorHandler,
       sourcemap,
+      isModule,
     }
-    this.parser = new Parser(this.source, {
-      errorHandler,
-      sourcemap,
-    })
+    this.parser = new Parser(this.source, this.options)
 
-    this._transpiler = new (transpilers[lang])({ errorHandler })
+    this._transpiler = new (transpilers[lang])(this.options)
   }
 
   public run() {
