@@ -21,7 +21,5 @@ export function printError(error: WenyanError, logger = console.log) {
 
     logger(chalk.red(`${name}: ${message}`))
   }
-  else {
-    console.error(error)
-  }
+  console.error(error)
 }

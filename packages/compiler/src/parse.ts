@@ -308,7 +308,6 @@ export class Parser {
       this.popLastAST()
     }
 
-    console.log(this.current)
     this.index += 1
 
     this.parseScope(node, () => this.current.value === 'functionEnd1')
@@ -316,7 +315,7 @@ export class Parser {
     this.index += 1
 
     this.assert(this.current.value === node.name, `end with same function name ${this.current.value}`)
-    this.assert(this.next.value === 'functionEnd2')
+    this.assert(this.next.value === 'functionEnd2', 'expecting 之術也')
 
     this.index += 2
 
@@ -337,23 +336,26 @@ export class Parser {
 
   // 昔之「乙」者今其是矣。
   private scanReassignStatement() {
-    const assign: Identifier = {
-      type: 'Identifier',
-      name: this.next.value as any,
-    }
+    const assign: Identifier = this.tokenToIdentifier(this.next)
+
+    // 昔之「乙」
     this.index += 2
 
+    // 者
     if (this.current.value === 'conj')
       this.index += 1
 
+    // 今
     this.index += 1
 
+    // xxx
     const node: ReassignStatement = {
       type: 'ReassignStatement',
       value: this.scanExpression(t => t.value === 'reassign3' || t.value === 'end'),
       assign,
     }
 
+    // 是矣
     this.index += 1
 
     return node
@@ -449,7 +451,8 @@ export class Parser {
       this.index += 1
     }
     else if (this.current.value === 'return') {
-      node.expression = this.scanExpression()
+      if (this.next.type === TokenType.Identifier)
+        node.expression = this.tokenToIdentifier(this.next)
     }
     else if (this.current.value === 'returnVoid') {
       this.index += 1
