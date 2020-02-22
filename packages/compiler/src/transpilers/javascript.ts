@@ -1,5 +1,5 @@
 /* eslint-disable no-case-declarations */
-import { AST, ASTScope, VarType, Accessability, IfStatement, ASTValue, Expression, FunctionCall, WhileStatement } from '../types'
+import { AST, ASTScope, VarType, Accessability, IfStatement, ASTValue, Expression, FunctionCall, WhileStatement, ExpressStatement } from '../types'
 import { Transplier } from './base'
 
 export class JavascriptTranspiler extends Transplier {
@@ -117,6 +117,26 @@ export class JavascriptTranspiler extends Transplier {
     return value
   }
 
+  private transExpressStatement(s: ExpressStatement) {
+    let code = ''
+    if (!s.operation)
+      code = s.target.name
+
+    else if (s.operation === 'length')
+      code = `${s.target.name}.length`
+
+    else if (s.operation === 'item')
+      code = `${s.target.name}[${s.argument?.name}]`
+      // TODO: number, string
+
+    else
+      this.throwError(undefined, `NOT IMPLEMENTED FOR OP ${s.operation}`)
+
+    const name = `let ${s.name?.name || this.nextVar()}`
+
+    return `${name}=${code};`
+  }
+
   private transpileScope(scope: ASTScope) {
     let code = ''
     const strayVars = []
@@ -191,6 +211,10 @@ export class JavascriptTranspiler extends Transplier {
 
         case 'FunctionCall':
           code += this.transFunctionCall(s)
+          break
+
+        case 'ExpressStatement':
+          code += this.transExpressStatement(s)
           break
 
         default:

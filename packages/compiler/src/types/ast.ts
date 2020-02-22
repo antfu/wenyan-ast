@@ -135,6 +135,14 @@ export interface OperationStatement extends Node {
   name?: Identifier
 }
 
+export interface ExpressStatement extends Node {
+  type: 'ExpressStatement'
+  target: Identifier
+  operation?: 'length' | 'item'
+  argument?: Identifier
+  name?: Identifier
+}
+
 export interface FunctionCall extends Node {
   type: 'FunctionCall'
   function: Identifier
@@ -159,6 +167,7 @@ export type Statement =
   | OperationStatement
   | ContinueStatement
   | BreakStatement
+  | ExpressStatement
 
 export type ASTScope =
   | Program

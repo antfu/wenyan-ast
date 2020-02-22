@@ -1,4 +1,4 @@
-import { Token, TokenType, AST, VariableDeclaration, VarType, ASTScope, Accessability, FunctionDeclaration, Statement, IfStatement, Expression, ReturnStatement, FunctionCall, OperationStatement, BinaryOperation, WhileStatement } from './types'
+import { Token, TokenType, AST, VariableDeclaration, VarType, ASTScope, Accessability, FunctionDeclaration, Statement, IfStatement, Expression, ReturnStatement, FunctionCall, OperationStatement, BinaryOperation, WhileStatement, ExpressStatement, Identifier } from './types'
 import { Tokenizer } from './tokenize'
 import { Messages } from './messages'
 import { ErrorHandler } from './errors/handler'
@@ -203,6 +203,12 @@ export class Parser {
         continue
       }
 
+      // express
+      if (this.current.type === TokenType.Express) {
+        this.pushAST(this.scanExpressStatement())
+        continue
+      }
+
       this.index++
     }
     return this.popScope()
@@ -312,7 +318,7 @@ export class Parser {
       args: [],
     }
     this.index += 2
-    while (!this.eof && this.current.type === TokenType.OpOrd && this.current.value === 'right') {
+    while (!this.eof && this.current.type === TokenType.OperationOrder && this.current.value === 'right') {
       if (this.next.type === TokenType.Answer) {
         node.args.push('Answer')
       }
@@ -467,6 +473,42 @@ export class Parser {
     return node
   }
 
+  // 夫「心語」之長。名之曰「長度」。
+  private scanExpressStatement() {
+    this.typeassert(this.next, TokenType.Identifier)
+    const node: ExpressStatement = {
+      type: 'ExpressStatement',
+      target: {
+        type: 'Identifier',
+        name: this.next.value as any,
+      },
+    }
+
+    this.index += 2
+
+    if (this.current.type === TokenType.ArrayOperator) {
+      if (this.current.value === 'length') {
+        node.operation = 'length'
+        this.index += 1
+      }
+      else if (this.current.value === 'item') {
+        node.operation = 'item'
+        node.argument = {
+          type: 'Identifier',
+          name: this.next.value as any,
+        }
+        this.index += 2
+      }
+      else {
+        this.throwUnexpectedToken('NOT IMPLEMENTED YET')
+      }
+    }
+
+    node.name = this.scanName()
+
+    return node
+  }
+
   private scanReturnStatement() {
     const node: ReturnStatement = {
       type: 'ReturnStatement',
@@ -496,7 +538,7 @@ export class Parser {
   // 除十三以十。名之曰「乙」。
   private scanOperationStatement() {
     this.typeassert(this.next, [TokenType.String, TokenType.Number, TokenType.Bool, TokenType.Answer, TokenType.Identifier])
-    this.typeassert(this.next2, TokenType.OpOrd)
+    this.typeassert(this.next2, TokenType.OperationOrder)
     this.typeassert(this.next3, [TokenType.String, TokenType.Number, TokenType.Bool, TokenType.Answer, TokenType.Identifier])
 
     const expression: BinaryOperation = {
@@ -523,19 +565,22 @@ export class Parser {
     const node: OperationStatement = {
       type: 'OperationStatement',
       expression,
+      name: this.scanName(),
     }
 
-    // 名之曰「乙」。
+    return node
+  }
+
+  private scanName() {
     if (this.current.type === TokenType.Name) {
       this.typeassert(this.next, TokenType.Identifier)
-      node.name = {
+      const name: Identifier = {
         type: 'Identifier',
         name: this.next.value as any,
       }
       this.index += 2
+      return name
     }
-
-    return node
   }
 
   private parseExpressions(tokens: Token[]): Expression {

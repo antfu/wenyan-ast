@@ -60,7 +60,7 @@ export const KEYWORDS_ALL = {
   其物如是: { type: TokenType.Control, value: 'objectBody' },
   之物也: { type: TokenType.Control, value: 'objectEnd' },
 
-  夫: { type: TokenType.Expression, value: undefined },
+  夫: { type: TokenType.Express, value: undefined },
 
   等於: { type: TokenType.ConditionOperator, value: '==' },
   不等於: { type: TokenType.ConditionOperator, value: '!=' },
@@ -78,11 +78,11 @@ export const KEYWORDS_ALL = {
   變: { type: TokenType.Operator, value: 'not' },
   所餘幾何: { type: TokenType.Operator, value: 'mod' },
 
-  以: { type: TokenType.OpOrd, value: 'left' },
-  於: { type: TokenType.OpOrd, value: 'right' },
+  以: { type: TokenType.OperationOrder, value: 'left' },
+  於: { type: TokenType.OperationOrder, value: 'right' },
 
-  之長: { type: TokenType.ArrayOperator, value: 'len' },
-  之: { type: TokenType.ArrayOperator, value: 'subs' },
+  之長: { type: TokenType.ArrayOperator, value: 'length' },
+  之: { type: TokenType.ArrayOperator, value: 'item' },
   充: { type: TokenType.ArrayOperator, value: 'push' },
   銜: { type: TokenType.ArrayOperator, value: 'cat' },
   其餘: { type: TokenType.ArrayOperator, value: 'rest' },
