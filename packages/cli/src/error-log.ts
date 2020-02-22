@@ -15,13 +15,13 @@ export function printError(error: WenyanError, logger = console.log) {
     line = chalk.green(line.slice(0, pos.column - 1))
       + chalk.red(line.slice(pos.column - 1, pos.column))
       + chalk.gray(line.slice(pos.column))
-    logger(line)
+    logger(line.trim())
 
     logger()
 
     logger(chalk.red(`${name}: ${message}`))
   }
   else {
-    logger(error)
+    console.error(error)
   }
 }

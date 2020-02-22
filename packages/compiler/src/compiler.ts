@@ -38,8 +38,8 @@ export class Compiler {
       isModule,
     }
     this.parser = new Parser(this.source, this.options)
-
     this._transpiler = new (transpilers[lang])(this.options)
+    this._ast = this.parser.ast
   }
 
   public run() {

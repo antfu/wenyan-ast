@@ -52,9 +52,9 @@ export const KEYWORDS_ALL = {
   噫: { type: TokenType.Builtin, value: 'discard' },
   取: { type: TokenType.Builtin, value: 'take' },
 
-  昔之: { type: TokenType.Reassign, value: 'part1' },
-  今: { type: TokenType.Reassign, value: 'part2' },
-  是矣: { type: TokenType.Reassign, value: 'part3' },
+  昔之: { type: TokenType.Reassign, value: 'reassign1' },
+  今: { type: TokenType.Reassign, value: 'reassign2' },
+  是矣: { type: TokenType.Reassign, value: 'reassign3' },
   不復存矣: { type: TokenType.Reassign, value: 'delete' },
   其: { type: TokenType.Answer, value: undefined },
 

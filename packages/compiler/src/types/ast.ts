@@ -65,9 +65,20 @@ export type BinaryOperation = {
   right: Expression
 }
 
+export type ArrayOperation = {
+  type: 'ArrayOperation'
+  identifier: Identifier
+} & ({
+  operator: 'length'
+} | {
+  operator: 'item'
+  argument: Identifier
+})
+
 export type Expression =
   | UnaryOperation
   | BinaryOperation
+  | ArrayOperation
   | boolean
   | Identifier
   | ASTValue
@@ -76,7 +87,10 @@ export type Expression =
 export interface Identifier {
   type: 'Identifier'
   name: string
+  declare?: boolean
 }
+
+export type AssignTarget = Identifier | undefined
 
 export interface IfStatement extends Node {
   type: 'IfStatement'
@@ -132,21 +146,19 @@ export interface BreakStatement extends Node {
 export interface OperationStatement extends Node {
   type: 'OperationStatement'
   expression: Expression
-  name?: Identifier
+  assign?: AssignTarget
 }
 
 export interface ExpressStatement extends Node {
   type: 'ExpressStatement'
-  target: Identifier
-  operation?: 'length' | 'item'
-  argument?: Identifier
-  name?: Identifier
+  expression: Expression
+  assign?: AssignTarget
 }
 
 export interface ReassignStatement extends Node {
   type: 'ReassignStatement'
-  from: Identifier | Answer
-  to: Identifier
+  value: Expression
+  assign?: AssignTarget
 }
 
 export interface PrintStatement extends Node {
@@ -157,7 +169,7 @@ export interface FunctionCall extends Node {
   type: 'FunctionCall'
   function: Identifier
   args: (Identifier | ASTValue | Answer)[]
-  resultName?: Identifier
+  assign?: AssignTarget
 }
 
 export type Answer = 'Answer'

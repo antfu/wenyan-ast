@@ -42,16 +42,12 @@ export class Parser {
   public run() {
     this._tokens = this.tokenier.getTokens()
 
-    this._ast = {
-      type: 'Program',
-      body: [],
-      loc: this.sourcemap
-        ? {
-          start: this.tokens[0].loc.start,
-          end: this.tokens.slice(-1)[0].loc.end,
-        }
-        : undefined,
-    }
+    this._ast.loc = this.sourcemap
+      ? {
+        start: this.tokens[0].loc.start,
+        end: this.tokens.slice(-1)[0].loc.end,
+      }
+      : undefined
 
     this.preprocessTokens()
     this._length = this._tokens.length - 1 // ignore the EOF token
@@ -218,7 +214,7 @@ export class Parser {
       }
 
       // reassign
-      if (this.current.type === TokenType.Reassign && this.current.value === 'part1') {
+      if (this.current.type === TokenType.Reassign && this.current.value === 'reassign1') {
         this.pushAST(this.scanReassignStatement())
         continue
       }
@@ -372,7 +368,7 @@ export class Parser {
     }
     if (this.current.type === TokenType.Name) {
       this.typeassert(this.next, TokenType.Identifier, 'identifier')
-      node.resultName = {
+      node.assign = {
         type: 'Identifier',
         name: this.next.value,
       }
@@ -449,7 +445,7 @@ export class Parser {
 
   // 昔之「乙」者今其是矣。
   private scanReassignStatement() {
-    const to: Identifier = {
+    const assign: Identifier = {
       type: 'Identifier',
       name: this.next.value as any,
     }
@@ -458,28 +454,15 @@ export class Parser {
     if (this.current.value === 'conj')
       this.index += 1
 
-    let from: Identifier | Answer = 'Answer'
-
-    if (this.next.type === TokenType.Identifier) {
-      from = {
-        type: 'Identifier',
-        name: this.next.value as any,
-      }
-    }
-    else if (this.next.type === TokenType.Answer) {
-      from = 'Answer'
-    }
-    else {
-      this.throwUnexpectedToken('Expecting identifier or answer')
-    }
+    this.index += 1
 
     const node: ReassignStatement = {
       type: 'ReassignStatement',
-      from,
-      to,
+      value: this.scanExpression(t => t.value === 'reassign3' || t.value === 'end'),
+      assign,
     }
 
-    this.index += 3
+    this.index += 1
 
     return node
   }
@@ -538,36 +521,23 @@ export class Parser {
 
   // 夫「心語」之長。名之曰「長度」。
   private scanExpressStatement() {
-    this.typeassert(this.next, TokenType.Identifier)
+    this.index += 1
+    this.typeassert(this.current, TokenType.Identifier)
+
+    const tokens = [this.current]
+
+    if (this.next.type === TokenType.ArrayOperator) {
+      tokens.push(this.next)
+      this.index += 1
+    }
+
+    this.index += 1
     const node: ExpressStatement = {
       type: 'ExpressStatement',
-      target: {
-        type: 'Identifier',
-        name: this.next.value as any,
-      },
+      expression: this.parseExpressions(tokens),
     }
 
-    this.index += 2
-
-    if (this.current.type === TokenType.ArrayOperator) {
-      if (this.current.value === 'length') {
-        node.operation = 'length'
-        this.index += 1
-      }
-      else if (this.current.value === 'item') {
-        node.operation = 'item'
-        node.argument = {
-          type: 'Identifier',
-          name: this.next.value as any,
-        }
-        this.index += 2
-      }
-      else {
-        this.throwUnexpectedToken('NOT IMPLEMENTED YET')
-      }
-    }
-
-    node.name = this.scanName()
+    node.assign = this.scanName()
 
     return node
   }
@@ -582,20 +552,23 @@ export class Parser {
       this.index += 1
     }
     else if (this.current.value === 'return') {
-      const tokens: Token[] = []
-      this.index += 1
-      // @ts-ignore
-      while (!this.eof && this.current.value !== 'end') {
-        tokens.push(this.current)
-        this.index += 1
-      }
-      node.expression = this.parseExpressions(tokens)
+      node.expression = this.scanExpression()
     }
     else if (this.current.value === 'returnVoid') {
       this.index += 1
     }
 
     return node
+  }
+
+  private scanExpression(shouldExit = (t: Token) => t.value === 'end') {
+    const tokens: Token[] = []
+    // @ts-ignore
+    while (!this.eof && !shouldExit(this.current)) {
+      tokens.push(this.current)
+      this.index += 1
+    }
+    return this.parseExpressions(tokens)
   }
 
   // 除十三以十。名之曰「乙」。
@@ -628,7 +601,7 @@ export class Parser {
     const node: OperationStatement = {
       type: 'OperationStatement',
       expression,
-      name: this.scanName(),
+      assign: this.scanName(),
     }
 
     return node
@@ -646,6 +619,14 @@ export class Parser {
     }
   }
 
+  private tokenToIdentifier(token: Token): Identifier {
+    this.typeassert(token, TokenType.Identifier, 'identifier')
+    return {
+      type: 'Identifier',
+      name: token.value as string,
+    }
+  }
+
   private parseExpressions(tokens: Token[]): Expression {
     if (tokens.length === 0)
       return true
@@ -658,10 +639,7 @@ export class Parser {
         return 'Answer'
       }
       else if (tokens[0].type === TokenType.Identifier) {
-        return {
-          type: 'Identifier',
-          name: tokens[0].value as string,
-        }
+        return this.tokenToIdentifier(tokens[0])
       }
       else if (tokens[0].type === TokenType.String) {
         return {
@@ -680,21 +658,42 @@ export class Parser {
     }
 
     if (tokens.length === 2) {
-      this.typeassert(tokens[0], TokenType.Operator)
-      return {
-        type: 'UnaryOperation',
-        operator: 'not',
-        expression: this.parseExpressions([tokens[1]]),
+      if (tokens[0].type === TokenType.Operator) {
+        return {
+          type: 'UnaryOperation',
+          operator: 'not',
+          expression: this.parseExpressions([tokens[1]]),
+        }
+      }
+      else if (tokens[1].type === TokenType.ArrayOperator) {
+        return {
+          type: 'ArrayOperation',
+          operator: 'length',
+          identifier: this.tokenToIdentifier(tokens[0]),
+        }
       }
     }
 
     if (tokens.length === 3) {
-      this.typeassert(tokens[1], TokenType.ConditionOperator)
-      return {
-        type: 'BinaryOperation',
-        operator: tokens[1].value as any,
-        left: this.parseExpressions([tokens[0]]),
-        right: this.parseExpressions([tokens[2]]),
+      if (tokens[1].type === TokenType.ArrayOperator && tokens[1].value === 'item') {
+        return {
+          type: 'ArrayOperation',
+          operator: 'item',
+          identifier: this.tokenToIdentifier(tokens[0]),
+          argument: this.tokenToIdentifier(tokens[2]), // TODO: number, string
+        }
+      }
+    }
+
+    if (tokens.length >= 3) {
+      const conditionIndex = tokens.findIndex(i => i.type === TokenType.ConditionOperator)
+      if (conditionIndex > 0) {
+        return {
+          type: 'BinaryOperation',
+          operator: tokens[1].value as any,
+          left: this.parseExpressions(tokens.slice(0, conditionIndex)),
+          right: this.parseExpressions(tokens.slice(conditionIndex + 1)),
+        }
       }
     }
 

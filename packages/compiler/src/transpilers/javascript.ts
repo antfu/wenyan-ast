@@ -1,5 +1,5 @@
 /* eslint-disable no-case-declarations */
-import { AST, ASTScope, VarType, Accessability, IfStatement, ASTValue, Expression, FunctionCall, WhileStatement, ExpressStatement, PrintStatement, ReassignStatement } from '../types'
+import { AST, ASTScope, VarType, Accessability, IfStatement, ASTValue, Expression, FunctionCall, WhileStatement, ExpressStatement, PrintStatement, ReassignStatement, AssignTarget } from '../types'
 import { Transplier } from './base'
 
 export class JavascriptTranspiler extends Transplier {
@@ -47,6 +47,12 @@ export class JavascriptTranspiler extends Transplier {
       else if (i.type === 'Value') {
         return this.transpileValue(i)
       }
+      else if (i.type === 'ArrayOperation' && i.operator === 'length') {
+        return `${i.identifier.name}.length`
+      }
+      else if (i.type === 'ArrayOperation' && i.operator === 'item') {
+        return `${i.identifier.name}[${this.transExpressions(i.argument)}]`
+      }
       else {
         this.errorHandler.throwError({
           // @ts-ignore
@@ -57,8 +63,12 @@ export class JavascriptTranspiler extends Transplier {
       .join(' ')
   }
 
+  private transAssign(assign: AssignTarget, valueString: string) {
+    return `let ${assign?.name || this.nextVar()}=${valueString};`
+  }
+
   private transFunctionCall(s: FunctionCall) {
-    let code = `let ${s.resultName?.name || this.nextVar()}=${s.function.name}`
+    let code = this.transAssign(s.assign, s.function.name)
     for (const i of s.args)
       code += `(${this.transExpressions(i)})`
     if (!s.args.length)
@@ -122,27 +132,11 @@ export class JavascriptTranspiler extends Transplier {
   }
 
   private transExpressStatement(s: ExpressStatement) {
-    let code = ''
-    if (!s.operation)
-      code = s.target.name
-
-    else if (s.operation === 'length')
-      code = `${s.target.name}.length`
-
-    else if (s.operation === 'item')
-      code = `${s.target.name}[${s.argument?.name}]`
-      // TODO: number, string
-
-    else
-      this.throwError(undefined, `NOT IMPLEMENTED FOR OP ${s.operation}`)
-
-    const name = `let ${s.name?.name || this.nextVar()}`
-
-    return `${name}=${code};`
+    return this.transAssign(s.assign, this.transExpressions(s.expression))
   }
 
-  transReassignStatement(s: ReassignStatement) {
-    return `${s.to.name}=${s.from === 'Answer' ? this.currentVar() : s.from.name};`
+  private transReassignStatement(s: ReassignStatement) {
+    return this.transAssign(s.assign, this.transExpressions(s.value))
   }
 
   private transpileScope(scope: ASTScope) {
@@ -214,7 +208,7 @@ export class JavascriptTranspiler extends Transplier {
 
         case 'OperationStatement':
           const exp = this.transExpressions(s.expression)
-          code += `let ${s.name?.name || this.nextVar()}=${exp};`
+          code += `let ${s.assign?.name || this.nextVar()}=${exp};`
           break
 
         case 'FunctionCall':
