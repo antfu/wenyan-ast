@@ -14,7 +14,11 @@
 
     .tab-contents
       .tab-content(v-show='tab === 0')
-        json-viewer(:value='tokens' :expand-depth='2')
+        token-viewer(
+          :tokens='tokens'
+          @mouseover='highlight'
+          @mouseleave='clearHighlight'
+        )
       .tab-content(v-show='tab === 1')
         json-viewer(:value='ast' :expand-depth='2')
       .tab-content.compiled(v-show='tab === 2')
@@ -24,18 +28,23 @@
 </template>
 
 <script lang='ts'>
+/* eslint-disable no-unused-expressions */
 import { ref, watch, onMounted } from '@vue/composition-api'
 // @ts-ignore
 import prettier from 'prettier/standalone'
 // @ts-ignore
 import parserBabylon from 'prettier/parser-babylon'
 import { useStoragePlain } from '@vueuse/core'
-import { Compiler, Program, Token } from '../../compiler/src'
+import { Compiler, Program, Token, SourceLocation } from '../../compiler/src'
 import { printError } from '../../cli/src/error-log'
 import examples from '../../examples'
+import TokenViewer from './TokenViewer.vue'
 
 export default {
   name: 'App',
+  components: {
+    TokenViewer,
+  },
   setup() {
     const code = useStoragePlain('wenyan-parser-viewer-code', '')
     const compiled = ref('')
@@ -86,6 +95,28 @@ export default {
       cm2.value.codemirror.setSize(null, '100%')
     })
 
+    let textMarker: any
+
+    const highlight = ({ start, end }: SourceLocation) => {
+      // @ts-ignore
+      textMarker?.clear()
+      // @ts-ignore
+      textMarker = cm1.value.codemirror.markText({
+        line: start.line - 1,
+        ch: start.column,
+      }, {
+        line: end.line - 1,
+        ch: end.column,
+      }, {
+        className: 'token-highlighted',
+      })
+    }
+
+    const clearHighlight = () => {
+      // @ts-ignore
+      textMarker?.clear()
+    }
+
     return {
       code,
       compiled,
@@ -98,6 +129,8 @@ export default {
       cm2,
       example,
       examples,
+      highlight,
+      clearHighlight,
     }
   },
 }
@@ -176,6 +209,13 @@ html, body
       .error-message
         padding 10px
         margin 0
+
+.token-highlighted
+  background #42b98370
+  padding 3px 1px
+  margin -3px -1px
+  border-radius 3px
+  font-weight bold !important
 
 .jv-container
   font-size 12px !important
