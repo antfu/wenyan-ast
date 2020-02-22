@@ -209,6 +209,15 @@ export class Parser {
         continue
       }
 
+      // print
+      if (this.current.value === 'print') {
+        this.pushAST({
+          type: 'PrintStatement',
+        })
+        this.index += 1
+        continue
+      }
+
       this.index++
     }
     return this.popScope()

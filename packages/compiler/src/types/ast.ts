@@ -143,6 +143,10 @@ export interface ExpressStatement extends Node {
   name?: Identifier
 }
 
+export interface PrintStatement extends Node {
+  type: 'PrintStatement'
+}
+
 export interface FunctionCall extends Node {
   type: 'FunctionCall'
   function: Identifier
@@ -168,6 +172,7 @@ export type Statement =
   | ContinueStatement
   | BreakStatement
   | ExpressStatement
+  | PrintStatement
 
 export type ASTScope =
   | Program
