@@ -337,25 +337,20 @@ export class Parser {
 
   // 昔之「乙」者今其是矣。
   private scanReassignStatement() {
-    this.index += 1
-
-    const value = this.scanExpression(t => t.type === TokenType.Control || t.value === 'end')
-
-    this.index += 1
+    const assign: Identifier = {
+      type: 'Identifier',
+      name: this.next.value as any,
+    }
+    this.index += 2
 
     if (this.current.value === 'conj')
       this.index += 1
 
     this.index += 1
 
-    const assign: Identifier = {
-      type: 'Identifier',
-      name: this.current.value as any,
-    }
-
     const node: ReassignStatement = {
       type: 'ReassignStatement',
-      value,
+      value: this.scanExpression(t => t.value === 'reassign3' || t.value === 'end'),
       assign,
     }
 
