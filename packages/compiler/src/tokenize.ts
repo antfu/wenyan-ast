@@ -173,9 +173,7 @@ export class Tokenizer {
     const name = this.tokens[index - 1].value as string
 
     const context = ImportModule(name, this.options.importOptions)
-    const tokenizer = new Tokenizer(context, this.options)
-
-    tokenizer.getTokens()
+    tokenizeContext(context)
 
     this.context.imports.push({
       name,
@@ -421,8 +419,11 @@ export class Tokenizer {
 }
 
 export function tokenize(src: string, options: Partial<TokenizerOptions> = {}) {
-  const {
-    errorHandler = new ErrorHandler(),
-  } = options
-  return new Tokenizer(createContext(src), { errorHandler }).getTokens()
+  return new Tokenizer(createContext(src), options).getTokens()
+}
+
+export function tokenizeContext(context: ModuleContext, options: Partial<TokenizerOptions> = {}) {
+  const tokenizer = new Tokenizer(context, options)
+  tokenizer.getTokens()
+  return context
 }

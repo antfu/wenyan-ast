@@ -1,12 +1,13 @@
 /* eslint-disable no-case-declarations */
-import { AST, ASTScope, VarType, Accessability, IfStatement, ASTValue, Expression, FunctionCall, WhileStatement, ExpressStatement, Print, ReassignStatement, AssignTarget, ForRangeStatement } from '../types'
+import { ASTScope, VarType, Accessability, IfStatement, ASTValue, Expression, FunctionCall, WhileStatement, ExpressStatement, Print, ReassignStatement, AssignTarget, ForRangeStatement, ModuleContext, ImportStatement } from '../types'
 import { Transplier } from './base'
+import { getCompiledFromContext } from '.'
 
 export class JavascriptTranspiler extends Transplier {
   name = 'javascript'
 
-  transpile(ast: AST): string {
-    return this.transScope(ast)
+  transpile(): string {
+    return this.transScope(this.context.ast)
   }
 
   private escapeQuote(str: string) {
@@ -60,10 +61,8 @@ export class JavascriptTranspiler extends Transplier {
         return `${i.identifier.name}[${this.transExpressions(i.argument)}]`
       }
       else {
-        this.errorHandler.throwError({
-          // @ts-ignore
-          message: `UNEXPECTED NODE ${i.type}`,
-        })
+        // @ts-ignore
+        this.throwError(undefined, `UNEXPECTED NODE ${i.type}`)
       }
     })
       .join(' ')
@@ -101,6 +100,15 @@ export class JavascriptTranspiler extends Transplier {
 
   private transWhile(s: WhileStatement) {
     return `while(${this.transExpressions(s.condition)}){${this.transScope(s)}};`
+  }
+
+  private transImportStatement(s: ImportStatement) {
+    const m = this.context.imports.find(s => s.name)
+
+    if (!m)
+      this.throwError(undefined, `Module ${s} not found`)
+
+    return getCompiledFromContext(m.context, this.options)
   }
 
   private transpileValue(node: ASTValue) {
@@ -246,8 +254,7 @@ export class JavascriptTranspiler extends Transplier {
           break
 
         case 'ImportStatement':
-          // TODO: imports
-          code += `\n/* TODO: import { ${s.imports.join(', ')} } from ${s.name} */\n`
+          code += this.transImportStatement(s)
           break
 
         default:

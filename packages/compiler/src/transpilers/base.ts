@@ -1,24 +1,19 @@
-import { AST, Position } from '../types'
-import { ErrorHandler } from '../errors'
-
-export interface TransplierOptions {
-  errorHandler: ErrorHandler
-}
+import { Position, ModuleContext } from '../types'
+import { TransplierOptions } from '.'
 
 export abstract class Transplier {
   protected varCount = 0
   protected randomVarCount = 0
-  protected readonly errorHandler: ErrorHandler
 
   constructor(
-    options: TransplierOptions,
+    public readonly context: ModuleContext,
+    public readonly options: TransplierOptions,
   ) {
-    this.errorHandler = options.errorHandler
   }
 
   abstract name: string
 
-  abstract transpile(ast: AST): string
+  abstract transpile(): string
 
   protected randomVar() {
     return `_rand${++this.randomVarCount}`
@@ -32,8 +27,8 @@ export abstract class Transplier {
     return `_ans${++this.varCount}`
   }
 
-  protected throwError(pos?: Position, message = '', ...parameters: string[]) {
-    this.errorHandler.throwError({
+  protected throwError(pos?: Position, message = '', ...parameters: string[]): never {
+    this.options.errorHandler.throwError({
       pos,
       message,
       parameters,

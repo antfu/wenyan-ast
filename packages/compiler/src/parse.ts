@@ -1,5 +1,5 @@
 import { Token, TokenType, AST, VariableDeclaration, VarType, ASTScope, Accessability, FunctionDeclaration, Statement, IfStatement, Expression, Return, FunctionCall, OperationStatement, BinaryOperation, WhileStatement, ExpressStatement, Identifier, ReassignStatement, Answer, ForRangeStatement, Position, Continue, Break, Comment, Print, ASTValue, ModuleContext, createContext, ImportOptions, ImportStatement, MacroStatement } from './types'
-import { Tokenizer } from './tokenize'
+import { Tokenizer, tokenizeContext } from './tokenize'
 import { Messages } from './messages'
 import { ErrorHandler } from './errors/handler'
 
@@ -13,7 +13,6 @@ export class Parser {
   protected index = 0
 
   readonly options: ParseOptions
-  protected tokenier: Tokenizer
   protected scopeStack: ASTScope[] = []
 
   constructor(
@@ -28,12 +27,10 @@ export class Parser {
       ...options,
       errorHandler,
     }
-
-    this.tokenier = new Tokenizer(context, this.options)
   }
 
   public run() {
-    this.tokenier.getTokens()
+    tokenizeContext(this.context, this.options)
 
     this.ast.loc = {
       start: this.tokens[0].loc.start,
@@ -812,6 +809,7 @@ export class Parser {
     return this.errorHandler.throwError({
       name: 'ParseError',
       pos: loc?.start,
+      file: this.context.name,
       message,
       parameters,
       source: this.context.source,
@@ -823,4 +821,14 @@ export function parse(src: string, options: Partial<ParseOptions> = {}) {
   const parser = new Parser(createContext(src), options)
   parser.run()
   return parser.ast
+}
+
+export function parseContext(context: ModuleContext, options: Partial<ParseOptions> = {}) {
+  const parser = new Parser(context, options)
+  parser.run()
+
+  for (const importsModule of context.imports)
+    parseContext(importsModule.context, options)
+
+  return context
 }

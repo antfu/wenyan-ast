@@ -1,15 +1,12 @@
 import stdlib from '../../stdlib'
-import transpilers from './transpilers'
 import { ErrorHandler } from './errors/handler'
-import { Parser } from './parse'
 import { ModuleContext, createContext, CompileOptions, CompilerInternalOptions } from './types'
-import { Transplier } from './transpilers/base'
+import { parseContext } from './parse'
+import { transpileContext } from './transpilers'
 
 export class Compiler {
   readonly options: CompilerInternalOptions
-  private _transpiler: Transplier
   private _initialized = false
-  private parser: Parser
 
   constructor(
     public readonly context: ModuleContext,
@@ -54,22 +51,19 @@ export class Compiler {
         requestTimeout,
       },
     }
-
-    this.parser = new Parser(context, this.options)
-    this._transpiler = new (transpilers[lang])(this.options)
   }
 
   public run() {
     let error = null
 
     try {
-      this.parser.run()
+      parseContext(this.context, this.options)
+      transpileContext(this.context, this.options)
     }
     catch (e) {
       error = e
     }
 
-    this.context.compiled = this._transpiler.transpile(this.ast)
     this._initialized = true
 
     if (error)

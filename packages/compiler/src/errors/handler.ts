@@ -45,6 +45,7 @@ export class ErrorHandler {
     name,
     pos,
     message,
+    file,
     source,
     parameters,
   }: ErrorOptions): WenyanError {
@@ -56,6 +57,7 @@ export class ErrorHandler {
     if (name)
       error.name = name
 
+    error.file = file
     error.description = message
     error.source = source
     error.pos = pos
