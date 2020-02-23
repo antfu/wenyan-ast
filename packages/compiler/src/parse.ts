@@ -405,19 +405,30 @@ export class Parser {
     return node
   }
 
+  // 乃得「甲」
   private scanReturnStatement() {
     const node: ReturnStatement = {
       type: 'ReturnStatement',
     }
 
+    // 乃得矣
     if (this.current.value === 'returnPrev') {
       node.expression = 'Answer'
       this.index += 1
     }
+    // 乃得「甲」
     else if (this.current.value === 'return') {
-      if (this.next.type === TokenType.Identifier)
-        node.expression = this.tokenToIdentifier(this.next)
+      this.index += 1
+      if (this.current.type === TokenType.Identifier) {
+        node.expression = this.tokenToIdentifier(this.current)
+        this.index += 1
+      }
+      else {
+        node.expression = this.tokenToValue(this.current)
+        this.index += 1
+      }
     }
+    // 乃歸空無
     else if (this.current.value === 'returnVoid') {
       this.index += 1
     }
@@ -619,7 +630,7 @@ export class Parser {
 
     while (!this.eof && !shouldExit()) {
       if (prev_index === this.index)
-        this.throwUnexpectedToken()
+        this.throwUnexpectedToken('Parser cursor stuck')
       prev_index = this.index
 
       const start = this.current.loc.start

@@ -70,7 +70,8 @@ export class JavascriptTranspiler extends Transplier {
   }
 
   private transAssign(assign: AssignTarget, valueString: string, end = ';') {
-    return `let ${assign?.name || this.nextVar()}=${valueString}${end}`
+    const declare = assign?.declare ?? true
+    return `${declare ? 'let ' : ''}${assign?.name || this.nextVar()}=${valueString}${end}`
   }
 
   private transFunctionCall(s: FunctionCall) {
@@ -214,7 +215,7 @@ export class JavascriptTranspiler extends Transplier {
 
         case 'OperationStatement':
           const exp = this.transExpressions(s.expression)
-          code += `let ${s.assign?.name || this.nextVar()}=${exp};`
+          code += this.transAssign(s.assign, exp)
           break
 
         case 'FunctionCall':
