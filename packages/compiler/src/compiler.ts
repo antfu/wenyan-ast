@@ -1,14 +1,9 @@
+import stdlib from '../../stdlib'
 import transpilers from './transpilers'
 import { ErrorHandler } from './errors/handler'
 import { Parser } from './parse'
-import { ModuleContext, createContext } from './types'
+import { ModuleContext, createContext, CompileOptions } from './types'
 import { Transplier } from './transpilers/base'
-
-export interface CompileOptions {
-  lang: 'js'
-  errorHandler: ErrorHandler
-  sourcemap: boolean
-}
 
 export class Compiler {
   readonly options: CompileOptions
@@ -24,13 +19,40 @@ export class Compiler {
       lang = 'js',
       sourcemap = true,
       errorHandler = new ErrorHandler(),
+      romanizeIdentifiers = 'none',
+      resetVariableCounter = true,
+      lib = stdlib,
+      strict = false,
+
+      // import options
+      entryFilepath = undefined,
+      importPaths = [],
+      importCache = {},
+      importContext = {},
+      allowHttp = false,
+      trustedHosts = [],
+      requestTimeout = 2000,
     } = options
 
     this.options = {
       lang,
       errorHandler,
       sourcemap,
+      romanizeIdentifiers,
+      resetVariableCounter,
+      lib,
+      strict,
+
+      // import options
+      entryFilepath,
+      importPaths,
+      importCache,
+      importContext,
+      allowHttp,
+      trustedHosts,
+      requestTimeout,
     }
+
     this.parser = new Parser(context, this.options)
     this._transpiler = new (transpilers[lang])(this.options)
   }

@@ -17,6 +17,7 @@ export interface ModuleContext {
   entryPath?: string
   source: string
   expandedSource?: string
+  moduleType: 'stdlib' | 'fs' | 'network' | 'context' | 'anonymous'
   module: 'main' | 'module'
   macros: MacroDefinition[]
   tokens: Token[]
@@ -25,13 +26,20 @@ export interface ModuleContext {
   imports: ImportDefinition[]
 }
 
-export function createContext(source: string, module: ModuleContext['module'] = 'main', name?: string, entryPath?: string): ModuleContext {
+export function createContext(
+  source: string,
+  module: ModuleContext['module'] = 'main',
+  name?: string,
+  moduleType: ModuleContext['moduleType'] = 'anonymous',
+  entryPath?: string,
+): ModuleContext {
   return {
     source,
     expandedSource: source,
     module,
     name,
     entryPath,
+    moduleType,
     tokens: [],
     imports: [],
     macros: [],

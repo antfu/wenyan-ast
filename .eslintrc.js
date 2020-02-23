@@ -15,5 +15,7 @@ module.exports = {
   rules: {
     '@typescript-eslint/no-unused-vars': 'warn',
     '@typescript-eslint/no-non-null-assertion': 'off',
+    'no-eval': 'off',
+    'no-case-declarations': 'off',
   },
 }
