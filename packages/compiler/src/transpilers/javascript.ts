@@ -1,5 +1,5 @@
 /* eslint-disable no-case-declarations */
-import { AST, ASTScope, VarType, Accessability, IfStatement, ASTValue, Expression, FunctionCall, WhileStatement, ExpressStatement, PrintStatement, ReassignStatement, AssignTarget, ForRangeStatement } from '../types'
+import { AST, ASTScope, VarType, Accessability, IfStatement, ASTValue, Expression, FunctionCall, WhileStatement, ExpressStatement, Print, ReassignStatement, AssignTarget, ForRangeStatement } from '../types'
 import { Transplier } from './base'
 
 export class JavascriptTranspiler extends Transplier {
@@ -95,7 +95,7 @@ export class JavascriptTranspiler extends Transplier {
     return code
   }
 
-  private transPrint(s: PrintStatement) {
+  private transPrint(s: Print) {
     return `console.log(${this.currentVar()});`
   }
 
@@ -198,18 +198,18 @@ export class JavascriptTranspiler extends Transplier {
           code += this.transWhile(s)
           break
 
-        case 'ReturnStatement':
+        case 'Return':
           if (!s.expression)
             code += 'return;'
           else
             code += `return ${this.transExpressions(s.expression)};`
           break
 
-        case 'ContinueStatement':
+        case 'Continue':
           code += 'continue;'
           break
 
-        case 'BreakStatement':
+        case 'Break':
           code += 'break;'
           break
 
@@ -222,7 +222,7 @@ export class JavascriptTranspiler extends Transplier {
           code += this.transFunctionCall(s)
           break
 
-        case 'CommentStatement':
+        case 'Comment':
           code += `/*${s.value}*/\n`
           break
 
@@ -230,7 +230,7 @@ export class JavascriptTranspiler extends Transplier {
           code += this.transExpressStatement(s)
           break
 
-        case 'PrintStatement':
+        case 'Print':
           code += this.transPrint(s)
           break
 

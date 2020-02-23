@@ -130,17 +130,17 @@ export interface ImportStatement extends Node {
   imports: string[]
 }
 
-export interface ReturnStatement extends Node {
-  type: 'ReturnStatement'
+export interface Return extends Node {
+  type: 'Return'
   expression?: Expression
 }
 
-export interface ContinueStatement extends Node {
-  type: 'ContinueStatement'
+export interface Continue extends Node {
+  type: 'Continue'
 }
 
-export interface BreakStatement extends Node {
-  type: 'BreakStatement'
+export interface Break extends Node {
+  type: 'Break'
 }
 
 export interface OperationStatement extends Node {
@@ -161,12 +161,12 @@ export interface ReassignStatement extends Node {
   assign?: AssignTarget
 }
 
-export interface PrintStatement extends Node {
-  type: 'PrintStatement'
+export interface Print extends Node {
+  type: 'Print'
 }
 
-export interface CommentStatement extends Node {
-  type: 'CommentStatement'
+export interface Comment extends Node {
+  type: 'Comment'
   value: string
 }
 
@@ -190,14 +190,14 @@ export type Statement =
   | FunctionCall
   | TryStatement
   | CatchStatement
-  | ReturnStatement
+  | Return
   | OperationStatement
-  | ContinueStatement
-  | BreakStatement
+  | Continue
+  | Break
   | ExpressStatement
-  | PrintStatement
+  | Print
   | ReassignStatement
-  | CommentStatement
+  | Comment
 
 export type ASTScope =
   | Program

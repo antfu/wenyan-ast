@@ -1,4 +1,4 @@
-import { Token, TokenType, AST, VariableDeclaration, VarType, ASTScope, Accessability, FunctionDeclaration, Statement, IfStatement, Expression, ReturnStatement, FunctionCall, OperationStatement, BinaryOperation, WhileStatement, ExpressStatement, Identifier, ReassignStatement, Answer, ForRangeStatement, Position, ContinueStatement, BreakStatement, CommentStatement, PrintStatement, ASTValue, ModuleContext, createContext, ImportOptions } from './types'
+import { Token, TokenType, AST, VariableDeclaration, VarType, ASTScope, Accessability, FunctionDeclaration, Statement, IfStatement, Expression, Return, FunctionCall, OperationStatement, BinaryOperation, WhileStatement, ExpressStatement, Identifier, ReassignStatement, Answer, ForRangeStatement, Position, Continue, Break, Comment, Print, ASTValue, ModuleContext, createContext, ImportOptions } from './types'
 import { Tokenizer } from './tokenize'
 import { Messages } from './messages'
 import { ErrorHandler } from './errors/handler'
@@ -390,9 +390,9 @@ export class Parser {
   }
 
   // 乃得「甲」
-  private scanReturnStatement() {
-    const node: ReturnStatement = {
-      type: 'ReturnStatement',
+  private scanReturn() {
+    const node: Return = {
+      type: 'Return',
     }
 
     // 乃得矣
@@ -648,14 +648,14 @@ export class Parser {
 
       // return
       if (this.current.value?.toString().startsWith('return')) {
-        this.pushAST(this.scanReturnStatement(), start)
+        this.pushAST(this.scanReturn(), start)
         continue
       }
 
       // continue
       if (this.current.value === 'continue') {
-        const node: ContinueStatement = {
-          type: 'ContinueStatement',
+        const node: Continue = {
+          type: 'Continue',
         }
         this.index += 1
         this.pushAST(node, start)
@@ -664,8 +664,8 @@ export class Parser {
 
       // break
       if (this.current.value === 'break') {
-        const node: BreakStatement = {
-          type: 'BreakStatement',
+        const node: Break = {
+          type: 'Break',
         }
         this.index += 1
         this.pushAST(node, start)
@@ -704,8 +704,8 @@ export class Parser {
 
       // print
       if (this.current.value === 'print') {
-        const node: PrintStatement = {
-          type: 'PrintStatement',
+        const node: Print = {
+          type: 'Print',
         }
         this.index += 1
         this.pushAST(node, start)
@@ -714,8 +714,8 @@ export class Parser {
 
       // comments
       if (this.current.type === TokenType.Comment) {
-        const node: CommentStatement = {
-          type: 'CommentStatement',
+        const node: Comment = {
+          type: 'Comment',
           value: this.current.value as string,
         }
         this.index += 1
