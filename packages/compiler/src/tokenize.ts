@@ -8,7 +8,8 @@ import { ImportModule } from './moduleReader'
 
 export interface TokenizerOptions {
   errorHandler: ErrorHandler
-  enableMacro: boolean
+  enableMacro?: boolean
+  strict?: boolean
   importOptions?: ImportOptions
 }
 
@@ -28,12 +29,14 @@ export class Tokenizer {
     const {
       errorHandler = new ErrorHandler(),
       enableMacro = true,
+      strict = false,
       importOptions,
     } = options
 
     this.options = {
       errorHandler,
       enableMacro,
+      strict,
       importOptions,
     }
 
@@ -50,6 +53,10 @@ export class Tokenizer {
 
   set tokens(v) {
     this.context.tokens = v
+  }
+
+  get last() {
+    return this.context.tokens[this.context.tokens.length - 1]
   }
 
   get source() {
@@ -124,8 +131,30 @@ export class Tokenizer {
         continue
       }
 
-      if (!this.scanKeywords())
-        this.throwUnexpectedToken(Messages.UnexpectedToken, char)
+      if (this.scanKeywords())
+        continue
+
+      if (this.options.strict) { this.throwUnexpectedToken(Messages.UnexpectedToken, char) }
+      else {
+        let last: Token
+        if (this.last.type === TokenType.Unknown) {
+          last = this.last
+        }
+        else {
+          last = {
+            type: TokenType.Unknown,
+            value: '',
+            loc: {
+              start: this.getPosition(),
+              end: this.getPosition(),
+            },
+          }
+          this.pushToken(last)
+        }
+        last.value += char
+        this.index += 1
+        last.loc.end = this.getPosition()
+      }
     }
 
     // EOF
@@ -191,8 +220,12 @@ export class Tokenizer {
       chars += char
       this.index++
     }
-    if (chars)
-      this.pushToken({ type: TokenType.Number, value: hanzi2num(chars) || undefined }, start)
+    if (chars) {
+      const value = hanzi2num(chars)
+      if (value == null)
+        this.throwUnexpectedToken(`Can not parse number "${chars}"`)
+      this.pushToken({ type: TokenType.Number, value }, start)
+    }
   }
 
   public scanComment() {

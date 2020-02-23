@@ -1,10 +1,9 @@
 import { Token, TokenType, AST, VariableDeclaration, VarType, ASTScope, Accessability, FunctionDeclaration, Statement, IfStatement, Expression, Return, FunctionCall, OperationStatement, BinaryOperation, WhileStatement, ExpressStatement, Identifier, ReassignStatement, Answer, ForRangeStatement, Position, Continue, Break, Comment, Print, ASTValue, ModuleContext, createContext, ImportOptions, ImportStatement, MacroStatement } from './types'
-import { Tokenizer, tokenizeContext } from './tokenize'
+import { Tokenizer, tokenizeContext, TokenizerOptions } from './tokenize'
 import { Messages } from './messages'
 import { ErrorHandler } from './errors/handler'
 
-export interface ParseOptions {
-  errorHandler: ErrorHandler
+export interface ParseOptions extends TokenizerOptions {
   importOptions?: ImportOptions
 }
 
@@ -114,11 +113,13 @@ export class Parser {
 
     // 有數四
     if (this.next.type === TokenType.Type) {
-      this.typeassert(this.next2, [TokenType.String, TokenType.Number, TokenType.Bool, TokenType.Answer], 'literals')
+      this.typeassert(this.next2, [TokenType.String, TokenType.Number, TokenType.Bool, TokenType.Answer, TokenType.Identifier], 'literals')
 
       node.count = 1
       node.varType = this.next.value as VarType
+
       node.values = [this.tokenToValue(this.next2, node.varType)]
+
       this.index += 3
       // 名之曰「甲」
       if (!this.eof && this.current.type === TokenType.Name) {

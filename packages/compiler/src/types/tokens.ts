@@ -3,7 +3,7 @@ import { SourceLocation } from './location'
 
 export interface NumberTokenDefinition {
   type: TokenType.Number
-  value?: number
+  value: number
 }
 
 export interface StringTokenDefinition {
@@ -20,11 +20,17 @@ export interface GeneralTokenDefinition {
   value?: undefined
 }
 
+export interface UnknownTokenDefinition {
+  type: TokenType.Unknown
+  value: string
+}
+
 export type TokenDefinition =
   | NumberTokenDefinition
   | KeywordTokenDefinition
   | StringTokenDefinition
   | GeneralTokenDefinition
+  | UnknownTokenDefinition
 
 export type Token = TokenDefinition & {
   loc: SourceLocation

@@ -155,7 +155,7 @@ export class JavascriptTranspiler extends Transplier {
   }
 
   private transScope(scope: ASTScope) {
-    let code = ''
+    this.context.compiled = ''
     const strayVars = []
 
     for (const s of scope.body) {
@@ -168,7 +168,7 @@ export class JavascriptTranspiler extends Transplier {
               strayVars.push(name)
             }
             const value = this.transpileValue(s.values[j] || { value: undefined, varType: s.varType, type: 'Value' })
-            code += `${this.getAccessDecaleration(name, s.accessability)}${value};`
+            this.context.compiled += `${this.getAccessDecaleration(name, s.accessability)}${value};`
           }
           break
 
@@ -195,66 +195,66 @@ export class JavascriptTranspiler extends Transplier {
             starts = '()=>{'
             ends = '};'
           }
-          code += this.getAccessDecaleration(name, s.accessability) + starts + this.transScope(s) + ends
+          this.context.compiled += this.getAccessDecaleration(name, s.accessability) + starts + this.transScope(s) + ends
           break
 
         case 'IfStatement':
-          code += this.transIf(s)
+          this.context.compiled += this.transIf(s)
           break
 
         case 'WhileStatement':
-          code += this.transWhile(s)
+          this.context.compiled += this.transWhile(s)
           break
 
         case 'Return':
           if (!s.expression)
-            code += 'return;'
+            this.context.compiled += 'return;'
           else
-            code += `return ${this.transExpressions(s.expression)};`
+            this.context.compiled += `return ${this.transExpressions(s.expression)};`
           break
 
         case 'Continue':
-          code += 'continue;'
+          this.context.compiled += 'continue;'
           break
 
         case 'Break':
-          code += 'break;'
+          this.context.compiled += 'break;'
           break
 
         case 'OperationStatement':
           const exp = this.transExpressions(s.expression)
-          code += this.transAssign(s.assign, exp)
+          this.context.compiled += this.transAssign(s.assign, exp)
           break
 
         case 'FunctionCall':
-          code += this.transFunctionCall(s)
+          this.context.compiled += this.transFunctionCall(s)
           break
 
         case 'Comment':
-          code += `\n/*${s.value}*/\n`
+          this.context.compiled += `\n/*${s.value}*/\n`
           break
 
         case 'ExpressStatement':
-          code += this.transExpressStatement(s)
+          this.context.compiled += this.transExpressStatement(s)
           break
 
         case 'Print':
-          code += this.transPrint(s)
+          this.context.compiled += this.transPrint(s)
           break
 
         case 'ReassignStatement':
-          code += this.transReassignStatement(s)
+          this.context.compiled += this.transReassignStatement(s)
           break
 
         case 'ForRangeStatement':
-          code += this.transForRangeStatement(s)
+          this.context.compiled += this.transForRangeStatement(s)
           break
 
         case 'MacroStatement':
           break
 
         case 'ImportStatement':
-          code += this.transImportStatement(s)
+          this.context.compiled += this.transImportStatement(s)
           break
 
         default:
@@ -263,6 +263,6 @@ export class JavascriptTranspiler extends Transplier {
       }
     }
 
-    return code
+    return this.context.compiled
   }
 }
