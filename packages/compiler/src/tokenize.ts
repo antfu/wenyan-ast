@@ -17,7 +17,7 @@ export class Tokenizer {
   lineNumber: number
   lineStart: number
   curlyStack: string[]
-  pendingMacro: Partial<MacroDefinition>
+  pendingMacroFrom: string | undefined
 
   constructor(
     public readonly context: ModuleContext,
@@ -37,7 +37,7 @@ export class Tokenizer {
     this.lineNumber = (context.source.length > 0) ? 1 : 0
     this.lineStart = 0
     this.curlyStack = []
-    this.pendingMacro = {}
+    this.pendingMacroFrom = undefined
   }
 
   get tokens() {
@@ -70,8 +70,18 @@ export class Tokenizer {
     let last = this.index - 1
 
     while (!this.eof()) {
-      if (last === this.index) this.throwUnexpectedToken()
+      if (last === this.index)
+        this.throwUnexpectedToken()
       last = this.index
+
+      if (this.options.enableMacro) {
+        for (const { from, to } of this.context.macros) {
+          if (this.source.slice(this.index).match(from)) {
+            this.context.expandedSource = this.source.slice(0, this.index) + this.source.slice(this.index).replace(from, to)
+            break
+          }
+        }
+      }
 
       const ch = this.source.charCodeAt(this.index)
       const char = this.source[this.index]
@@ -295,25 +305,31 @@ export class Tokenizer {
     if (this.options.enableMacro && type === TokenType.String) {
       const last = this.tokens[this.tokens.length - 1]
       if (last.value === 'macroFrom') {
-        this.pendingMacro.from = chars
+        this.pendingMacroFrom = chars
       }
       else if (last.value === 'macroTo') {
-        this.pendingMacro.to = chars
-        this.pushPendingMacro()
+        if (this.pendingMacroFrom == null)
+          this.throwUnexpectedToken('Missing 或云 before 蓋謂')
+
+        this.pushPendingMacro({
+          from: this.pendingMacroFrom,
+          to: chars,
+        })
+
+        this.pendingMacroFrom = undefined
       }
     }
 
     this.pushToken({ type, value: chars }, start)
   }
 
-  private pushPendingMacro() {
+  private pushPendingMacro({ from, to }: {from: string; to: string}) {
     if (!this.options.enableMacro)
       return
 
-    let { from, to } = this.pendingMacro as MacroDefinition
-
-    const ins = from.match(/「[甲乙丙丁戊己庚辛壬癸]」/g)
-    const ous = to.match(/「[甲乙丙丁戊己庚辛壬癸]」/g)
+    const regex = /「[甲乙丙丁戊己庚辛壬癸]」/g
+    const ins = from.match(regex)
+    const ous = to.match(regex)
 
     if (ins !== null && ous !== null) {
       for (let k = 0; k < ous.length; k++) {
@@ -322,30 +338,12 @@ export class Tokenizer {
           to = to.replace(new RegExp(ous[k], 'g'), `$${ii + 1}`)
       }
     }
-    from = from.replace(/「[甲乙丙丁戊己庚辛壬癸]」/g, '(.+?)')
+    from = from.replace(regex, '(.+?)')
 
-    const macro = { from, to }
-    this.expandMacro(macro)
-    this.context.macros.push(macro)
-    this.pendingMacro = {}
-  }
-
-  private expandMacro(macros: MacroDefinition | MacroDefinition[]) {
-    if (!this.options.enableMacro)
-      return
-
-    if (!Array.isArray(macros))
-      macros = [macros]
-
-    const before = this.source.slice(0, this.index)
-    let after = this.source.slice(this.index)
-
-    for (const macro of macros) {
-      const from = new RegExp(macro.from)
-
-      after = after.replace(from, macro.to)
-    }
-    this.context.expandedSource = before + after
+    this.context.macros.push({
+      from: RegExp(`^${from}`),
+      to,
+    })
   }
 
   /**

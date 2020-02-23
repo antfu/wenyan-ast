@@ -2,7 +2,7 @@ import { Token } from './tokens'
 import { Program } from './ast'
 
 export interface MacroDefinition {
-  from: string
+  from: RegExp
   to: string
 }
 
