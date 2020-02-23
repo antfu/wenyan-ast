@@ -3,11 +3,11 @@ import { KEYWORDS_MAX_LENGTH, KEYWORDS, KEYWORDS_NUMBERS, KEYWORDS_COMMENT } fro
 import { ErrorHandler } from './errors/handler'
 import { Messages } from './messages'
 import { Character } from './character'
-import { Token, TokenType, Position, SourceLocation, TokenDefinition, MacroDefinition } from './types'
+import { Token, TokenType, Position, SourceLocation, TokenDefinition, ModuleContext, createContext } from './types'
 
 export interface TokenizerOptions {
   errorHandler: ErrorHandler
-  macros: MacroDefinition[]
+  context: ModuleContext
 }
 
 export class Tokenizer {
@@ -18,7 +18,6 @@ export class Tokenizer {
   lineNumber: number
   lineStart: number
   curlyStack: string[]
-  tokens: Token[] = []
 
   constructor(
     public readonly source: string,
@@ -26,12 +25,12 @@ export class Tokenizer {
   ) {
     const {
       errorHandler = new ErrorHandler(),
-      macros = [],
+      context = createContext(),
     } = options
 
     this.options = {
       errorHandler,
-      macros,
+      context,
     }
 
     this.length = source.length
@@ -39,6 +38,14 @@ export class Tokenizer {
     this.lineNumber = (source.length > 0) ? 1 : 0
     this.lineStart = 0
     this.curlyStack = []
+  }
+
+  get tokens() {
+    return this.options.context.tokens
+  }
+
+  set tokens(v) {
+    this.options.context.tokens = v
   }
 
   getNextToken(): Token {

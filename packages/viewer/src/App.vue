@@ -68,7 +68,7 @@ export default {
         tokens.value = compiler.tokens
         ast.value = compiler.ast
         compiled.value = prettier.format(compiler.compiled, {
-          parser: 'babylon',
+          parser: 'babel',
           plugins: [parserBabylon],
         })
 

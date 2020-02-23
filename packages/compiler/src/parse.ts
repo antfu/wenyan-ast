@@ -1,16 +1,14 @@
-import { Token, TokenType, AST, VariableDeclaration, VarType, ASTScope, Accessability, FunctionDeclaration, Statement, IfStatement, Expression, ReturnStatement, FunctionCall, OperationStatement, BinaryOperation, WhileStatement, ExpressStatement, Identifier, ReassignStatement, Answer, ForRangeStatement, Position, ContinueStatement, BreakStatement, CommentStatement, PrintStatement, ASTValue } from './types'
+import { Token, TokenType, AST, VariableDeclaration, VarType, ASTScope, Accessability, FunctionDeclaration, Statement, IfStatement, Expression, ReturnStatement, FunctionCall, OperationStatement, BinaryOperation, WhileStatement, ExpressStatement, Identifier, ReassignStatement, Answer, ForRangeStatement, Position, ContinueStatement, BreakStatement, CommentStatement, PrintStatement, ASTValue, ModuleContext, createContext } from './types'
 import { Tokenizer } from './tokenize'
 import { Messages } from './messages'
 import { ErrorHandler } from './errors/handler'
 
 export interface ParseOptions {
   errorHandler: ErrorHandler
-  sourcemap: boolean
+  context: ModuleContext
 }
 
 export class Parser {
-  protected _tokens: Token[] | undefined
-  protected _ast: AST
   protected _length = 0
   protected index = 0
 
@@ -24,33 +22,27 @@ export class Parser {
   ) {
     const {
       errorHandler = new ErrorHandler(),
-      sourcemap = true,
+      context = createContext(),
     } = options
 
     this.options = {
       errorHandler,
-      sourcemap,
+      context,
     }
 
     this.tokenier = new Tokenizer(this.source, this.options)
-    this._ast = {
-      type: 'Program',
-      body: [],
-    }
   }
 
   public run() {
-    this._tokens = this.tokenier.getTokens()
+    this.tokenier.getTokens()
 
-    this._ast.loc = this.sourcemap
-      ? {
-        start: this.tokens[0].loc.start,
-        end: this.tokens.slice(-1)[0].loc.end,
-      }
-      : undefined
+    this.ast.loc = {
+      start: this.tokens[0].loc.start,
+      end: this.tokens.slice(-1)[0].loc.end,
+    }
 
     this.preprocessTokens()
-    this._length = this._tokens.length - 1 // ignore the EOF token
+    this._length = this.tokens.length - 1 // ignore the EOF token
 
     this.index = 0
 
@@ -62,19 +54,15 @@ export class Parser {
   }
 
   get tokens() {
-    return this._tokens!
+    return this.options.context.tokens
   }
 
   get ast() {
-    return this._ast!
+    return this.options.context.ast
   }
 
   get errorHandler() {
     return this.options.errorHandler
-  }
-
-  get sourcemap() {
-    return this.options.sourcemap
   }
 
   get eof() {
@@ -106,7 +94,7 @@ export class Parser {
   }
 
   private preprocessTokens() {
-    this._tokens = this.tokens.filter(t => t.type !== TokenType.Punctuations)
+    this.options.context.tokens = this.tokens.filter(t => t.type !== TokenType.Punctuations)
   }
 
   protected pushScope(scope: ASTScope) {
@@ -127,9 +115,6 @@ export class Parser {
       names: [],
       accessability: this.current.value as Accessability,
     }
-
-    if (this.sourcemap)
-      node.loc = { ...this.current.loc }
 
     // 有數四
     if (this.next.type === TokenType.Type) {

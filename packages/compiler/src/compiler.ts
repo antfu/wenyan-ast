@@ -1,22 +1,19 @@
 import transpilers from './transpilers'
 import { ErrorHandler } from './errors/handler'
 import { Parser } from './parse'
-import { AST, Token } from './types'
+import { AST, Token, ModuleContext, createContext } from './types'
 import { Transplier } from './transpilers/base'
 
 export interface CompileOptions {
   lang: 'js'
   errorHandler: ErrorHandler
   sourcemap: boolean
-  isModule: boolean
+  context: ModuleContext
 }
 
 export class Compiler {
   readonly options: CompileOptions
-  private _ast: AST | undefined
-  private _tokens: Token[] | undefined
   private _transpiler: Transplier
-  private _compiled: string | undefined
   private _initialized = false
   private parser: Parser
 
@@ -28,18 +25,17 @@ export class Compiler {
       lang = 'js',
       sourcemap = true,
       errorHandler = new ErrorHandler(),
-      isModule = false,
+      context = createContext(),
     } = options
 
     this.options = {
       lang,
       errorHandler,
       sourcemap,
-      isModule,
+      context,
     }
     this.parser = new Parser(this.source, this.options)
     this._transpiler = new (transpilers[lang])(this.options)
-    this._ast = this.parser.ast
   }
 
   public run() {
@@ -52,9 +48,7 @@ export class Compiler {
       error = e
     }
 
-    this._ast = this.parser.ast
-    this._tokens = this.parser.tokens
-    this._compiled = this._transpiler.transpile(this.ast)
+    this.options.context.compiled = this._transpiler.transpile(this.ast)
     this._initialized = true
 
     if (error)
@@ -62,15 +56,15 @@ export class Compiler {
   }
 
   get ast() {
-    return this._ast!
+    return this.options.context.ast
   }
 
   get tokens() {
-    return this._tokens!
+    return this.options.context.tokens
   }
 
   get compiled() {
-    return this._compiled!
+    return this.options.context.compiled || ''
   }
 
   get initialized() {
