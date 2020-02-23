@@ -16,8 +16,8 @@ export class JavascriptTranspiler extends Transplier {
 
   private getAccessDecaleration(name: string, accessability: Accessability) {
     return accessability === Accessability.public
-      ? `let ${name}=this.${name}=`
-      : `let ${name}=`
+      ? `var ${name}=this.${name}=`
+      : `var ${name}=`
   }
 
   private transForRangeStatement(s: ForRangeStatement) {
@@ -70,7 +70,7 @@ export class JavascriptTranspiler extends Transplier {
 
   private transAssign(assign: AssignTarget, valueString: string, end = ';') {
     const declare = assign?.declare ?? true
-    return `${declare ? 'let ' : ''}${assign?.name || this.nextVar()}=${valueString}${end}`
+    return `${declare ? 'var ' : ''}${assign?.name || this.nextVar()}=${valueString}${end}`
   }
 
   private transFunctionCall(s: FunctionCall) {
@@ -103,12 +103,12 @@ export class JavascriptTranspiler extends Transplier {
   }
 
   private transImportStatement(s: ImportStatement) {
-    const m = this.context.imports.find(s => s.name)
+    const m = this.context.imports[s.name]
 
     if (!m)
       this.throwError(undefined, `Module ${s} not found`)
 
-    return getCompiledFromContext(m.context, this.options)
+    return getCompiledFromContext(m, this.options)
   }
 
   private transpileValue(node: ASTValue) {

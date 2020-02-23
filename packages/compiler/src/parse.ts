@@ -827,8 +827,8 @@ export function parseContext(context: ModuleContext, options: Partial<ParseOptio
   const parser = new Parser(context, options)
   parser.run()
 
-  for (const importsModule of context.imports)
-    parseContext(importsModule.context, options)
+  for (const moduleContext of Object.values(context.imports))
+    parseContext(moduleContext, options)
 
   return context
 }

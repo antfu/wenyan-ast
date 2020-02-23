@@ -29,5 +29,5 @@ export function getCompiledFromContext(context: ModuleContext, options: Transpli
 
   transpileContext(context, options)
 
-  return context.compiled as string
+  return context.compiled || '/*???*/'
 }

@@ -150,7 +150,7 @@ export class Tokenizer {
         this.index += len
         this.pushToken(keywords[id], start, end)
 
-        if (keywords[id].value === 'importNameEnd')
+        if (keywords[id].value === 'importEnd')
           this.scanImport()
 
         return true
@@ -159,27 +159,10 @@ export class Tokenizer {
   }
 
   private scanImport() {
-    let index = this.tokens.length - 2
-
-    const imports = []
-    while (index >= 0 && this.tokens[index].type === TokenType.Identifier) {
-      imports.unshift(this.tokens[index].value as string)
-      index -= 1
-    }
-
-    while (index >= 0 && this.tokens[index].value !== 'importEnd')
-      index -= 1
-
-    const name = this.tokens[index - 1].value as string
-
+    const name = this.tokens[this.tokens.length - 2].value as string
     const context = ImportModule(name, this.options.importOptions)
+    this.context.imports[name] = context
     tokenizeContext(context)
-
-    this.context.imports.push({
-      name,
-      imports,
-      context,
-    })
   }
 
   private newLine() {

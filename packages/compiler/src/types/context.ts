@@ -6,12 +6,6 @@ export interface MacroDefinition {
   to: string
 }
 
-export interface ImportDefinition {
-  name: string
-  imports: string[]
-  context: ModuleContext
-}
-
 export interface ModuleContext {
   name?: string
   entryPath?: string
@@ -23,7 +17,7 @@ export interface ModuleContext {
   tokens: Token[]
   ast: Program
   compiled?: string
-  imports: ImportDefinition[]
+  imports: Record<string, ModuleContext>
 }
 
 export function createContext(
@@ -41,7 +35,7 @@ export function createContext(
     entryPath,
     moduleType,
     tokens: [],
-    imports: [],
+    imports: {},
     macros: [],
     ast: {
       type: 'Program',
