@@ -1,4 +1,4 @@
-import { Token, TokenType, AST, VariableDeclaration, VarType, ASTScope, Accessability, FunctionDeclaration, Statement, IfStatement, Expression, Return, FunctionCall, OperationStatement, BinaryOperation, WhileStatement, ExpressStatement, Identifier, ReassignStatement, Answer, ForRangeStatement, Position, Continue, Break, Comment, Print, ASTValue, ModuleContext, createContext, ImportOptions } from './types'
+import { Token, TokenType, AST, VariableDeclaration, VarType, ASTScope, Accessability, FunctionDeclaration, Statement, IfStatement, Expression, Return, FunctionCall, OperationStatement, BinaryOperation, WhileStatement, ExpressStatement, Identifier, ReassignStatement, Answer, ForRangeStatement, Position, Continue, Break, Comment, Print, ASTValue, ModuleContext, createContext, ImportOptions, ImportStatement, MacroStatement } from './types'
 import { Tokenizer } from './tokenize'
 import { Messages } from './messages'
 import { ErrorHandler } from './errors/handler'
@@ -270,6 +270,7 @@ export class Parser {
     return node
   }
 
+  // 恆為是
   private scanWhileTrue() {
     const node: WhileStatement = {
       type: 'WhileStatement',
@@ -430,6 +431,36 @@ export class Parser {
     return this.parseExpressions(tokens)
   }
 
+  // 為是「幾何」遍。
+  private scanForRangeStatement() {
+    let range: number | Identifier
+
+    if (this.next.type === TokenType.Number)
+      range = this.next.value as number
+
+    else if (this.next.type === TokenType.Identifier)
+      range = this.tokenToIdentifier(this.next)
+
+    else
+      this.throwUnexpectedToken('Expecting number or identifier')
+
+    this.assert(this.next2.value === 'forRange2', 'expecting 遍')
+
+    const node: ForRangeStatement = {
+      type: 'ForRangeStatement',
+      range,
+      body: [],
+    }
+
+    this.index += 3
+
+    this.parseScope(node, () => this.current.value === 'end')
+
+    this.index += 1
+
+    return node
+  }
+
   // 除十三以十。名之曰「乙」。
   private scanOperationStatement() {
     this.typeassert(this.next, [TokenType.String, TokenType.Number, TokenType.Bool, TokenType.Answer, TokenType.Identifier])
@@ -462,6 +493,50 @@ export class Parser {
       expression,
       assign: this.scanName(),
     }
+
+    return node
+  }
+
+  // 吾嘗觀「「算經」」之書。方悟「絕對」「平方根」之義。
+  private scanImportStatement() {
+    this.index += 1
+
+    this.typeassert(this.current, TokenType.String)
+
+    const name = this.current.value as string
+    // TODO: support import path
+
+    this.index += 3
+
+    const imports: string[] = []
+    while (!this.eof && this.current.type === TokenType.Identifier) {
+      imports.push(this.current.value as string)
+      this.index += 1
+    }
+
+    this.index += 1
+
+    const node: ImportStatement = {
+      type: 'ImportStatement',
+      name,
+      imports,
+    }
+    return node
+  }
+
+  // 或云「「書「甲」焉」」。
+  // 蓋謂「「吾有一言。曰「甲」。書之」」。
+  private scanMacro() {
+    this.typeassert(this.next, TokenType.String)
+    this.typeassert(this.next3, TokenType.String)
+
+    const node: MacroStatement = {
+      type: 'MacroStatement',
+      from: this.next.value as string,
+      to: this.next3.value as string,
+    }
+
+    this.index += 4
 
     return node
   }
@@ -502,36 +577,6 @@ export class Parser {
       value: token.value as any,
       loc: token.loc,
     }
-  }
-
-  // 為是「幾何」遍。
-  private scanForRangeStatement() {
-    let range: number | Identifier
-
-    if (this.next.type === TokenType.Number)
-      range = this.next.value as number
-
-    else if (this.next.type === TokenType.Identifier)
-      range = this.tokenToIdentifier(this.next)
-
-    else
-      this.throwUnexpectedToken('Expecting number or identifier')
-
-    this.assert(this.next2.value === 'forRange2', 'expecting 遍')
-
-    const node: ForRangeStatement = {
-      type: 'ForRangeStatement',
-      range,
-      body: [],
-    }
-
-    this.index += 3
-
-    this.parseScope(node, () => this.current.value === 'end')
-
-    this.index += 1
-
-    return node
   }
 
   private parseExpressions(tokens: Token[]): Expression {
@@ -731,6 +776,16 @@ export class Parser {
 
       if (this.current.value === 'forRange1') {
         this.pushAST(this.scanForRangeStatement(), start)
+        continue
+      }
+
+      if (this.current.value === 'importStart') {
+        this.pushAST(this.scanImportStatement(), start)
+        continue
+      }
+
+      if (this.current.value === 'macroFrom') {
+        this.pushAST(this.scanMacro(), start)
         continue
       }
 

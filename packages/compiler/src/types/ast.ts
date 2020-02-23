@@ -124,12 +124,6 @@ export interface CatchStatement extends Node {
   errorType?: string
 }
 
-export interface ImportStatement extends Node {
-  type: 'ImportStatement'
-  source: string
-  imports: string[]
-}
-
 export interface Return extends Node {
   type: 'Return'
   expression?: Expression
@@ -170,6 +164,18 @@ export interface Comment extends Node {
   value: string
 }
 
+export interface ImportStatement extends Node {
+  type: 'ImportStatement'
+  name: string
+  imports: string[]
+}
+
+export interface MacroStatement extends Node {
+  type: 'MacroStatement'
+  from: string
+  to: string
+}
+
 export interface FunctionCall extends Node {
   type: 'FunctionCall'
   function: Identifier
@@ -182,22 +188,24 @@ export type Answer = 'Answer'
 export type AST = Program
 
 export type Statement =
-  | VariableDeclaration
-  | FunctionDeclaration
-  | IfStatement
-  | WhileStatement
+  | Break
+  | CatchStatement
+  | Comment
+  | Continue
+  | ExpressStatement
   | ForRangeStatement
   | FunctionCall
-  | TryStatement
-  | CatchStatement
-  | Return
+  | FunctionDeclaration
+  | IfStatement
+  | ImportStatement
+  | MacroStatement
   | OperationStatement
-  | Continue
-  | Break
-  | ExpressStatement
   | Print
   | ReassignStatement
-  | Comment
+  | Return
+  | TryStatement
+  | VariableDeclaration
+  | WhileStatement
 
 export type ASTScope =
   | Program

@@ -223,7 +223,7 @@ export class JavascriptTranspiler extends Transplier {
           break
 
         case 'Comment':
-          code += `/*${s.value}*/\n`
+          code += `\n/*${s.value}*/\n`
           break
 
         case 'ExpressStatement':
@@ -240,6 +240,14 @@ export class JavascriptTranspiler extends Transplier {
 
         case 'ForRangeStatement':
           code += this.transForRangeStatement(s)
+          break
+
+        case 'MacroStatement':
+          break
+
+        case 'ImportStatement':
+          // TODO: imports
+          code += `\n/* TODO: import { ${s.imports.join(', ')} } from ${s.name} */\n`
           break
 
         default:
