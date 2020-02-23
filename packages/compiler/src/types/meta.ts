@@ -16,6 +16,9 @@ export interface CompileOnlyOptions {
 }
 
 export interface ImportOptions {
+  lib: CompileOnlyOptions['lib']
+  lang: CompileOnlyOptions['lang']
+
   entryFilepath?: string
   importPaths: string | string[]
   importCache: CacheObject
@@ -26,3 +29,7 @@ export interface ImportOptions {
 }
 
 export type CompileOptions = CompileOnlyOptions & ImportOptions
+
+export type CompilerInternalOptions = CompileOnlyOptions & {
+  importOptions: ImportOptions
+}

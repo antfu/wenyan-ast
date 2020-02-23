@@ -2,11 +2,11 @@ import stdlib from '../../stdlib'
 import transpilers from './transpilers'
 import { ErrorHandler } from './errors/handler'
 import { Parser } from './parse'
-import { ModuleContext, createContext, CompileOptions } from './types'
+import { ModuleContext, createContext, CompileOptions, CompilerInternalOptions } from './types'
 import { Transplier } from './transpilers/base'
 
 export class Compiler {
-  readonly options: CompileOptions
+  readonly options: CompilerInternalOptions
   private _transpiler: Transplier
   private _initialized = false
   private parser: Parser
@@ -42,15 +42,17 @@ export class Compiler {
       resetVariableCounter,
       lib,
       strict,
-
-      // import options
-      entryFilepath,
-      importPaths,
-      importCache,
-      importContext,
-      allowHttp,
-      trustedHosts,
-      requestTimeout,
+      importOptions: {
+        lib,
+        lang,
+        entryFilepath,
+        importPaths,
+        importCache,
+        importContext,
+        allowHttp,
+        trustedHosts,
+        requestTimeout,
+      },
     }
 
     this.parser = new Parser(context, this.options)

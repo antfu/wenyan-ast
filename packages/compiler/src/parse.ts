@@ -1,10 +1,11 @@
-import { Token, TokenType, AST, VariableDeclaration, VarType, ASTScope, Accessability, FunctionDeclaration, Statement, IfStatement, Expression, ReturnStatement, FunctionCall, OperationStatement, BinaryOperation, WhileStatement, ExpressStatement, Identifier, ReassignStatement, Answer, ForRangeStatement, Position, ContinueStatement, BreakStatement, CommentStatement, PrintStatement, ASTValue, ModuleContext, createContext } from './types'
+import { Token, TokenType, AST, VariableDeclaration, VarType, ASTScope, Accessability, FunctionDeclaration, Statement, IfStatement, Expression, ReturnStatement, FunctionCall, OperationStatement, BinaryOperation, WhileStatement, ExpressStatement, Identifier, ReassignStatement, Answer, ForRangeStatement, Position, ContinueStatement, BreakStatement, CommentStatement, PrintStatement, ASTValue, ModuleContext, createContext, ImportOptions } from './types'
 import { Tokenizer } from './tokenize'
 import { Messages } from './messages'
 import { ErrorHandler } from './errors/handler'
 
 export interface ParseOptions {
   errorHandler: ErrorHandler
+  importOptions?: ImportOptions
 }
 
 export class Parser {
@@ -24,6 +25,7 @@ export class Parser {
     } = options
 
     this.options = {
+      ...options,
       errorHandler,
     }
 

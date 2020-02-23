@@ -50,11 +50,13 @@ function fetchSync(uri: string, cache: CacheObject, requestTimeout: number) {
   return data
 }
 
-export function importReader(
+export function ImportModule(
   name: string,
   importOptions: Partial<ImportOptions> = {},
 ): ModuleContext {
   const {
+    lib = { js: {}, py: {}, default: {} },
+    lang = 'js',
     allowHttp = false,
     entryFilepath,
     importPaths = [],
@@ -63,6 +65,10 @@ export function importReader(
     trustedHosts = [],
     requestTimeout = 2000,
   } = importOptions
+
+  const stdlib = lib[lang][name] || lib.default[name]
+  if (stdlib)
+    return createContext(stdlib, 'module', name, 'stdlib')
 
   const imported = importContext[name]
   if (imported) {
@@ -160,6 +166,6 @@ export function bundleImports(
     if (src)
       return createContext(src, 'module', moduleName, 'stdlib')
 
-    return importReader(moduleName, importOptions)
+    return ImportModule(moduleName, importOptions)
   })
 }

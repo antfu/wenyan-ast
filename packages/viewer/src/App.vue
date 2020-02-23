@@ -66,6 +66,8 @@ export default {
           sourcemap: true,
         })
       try {
+        // @ts-ignore
+        window.context = compiler.context
         compiler.run()
         tokens.value = compiler.tokens
         ast.value = compiler.ast

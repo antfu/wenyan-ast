@@ -3,11 +3,13 @@ import { KEYWORDS_MAX_LENGTH, KEYWORDS, KEYWORDS_NUMBERS, KEYWORDS_COMMENT } fro
 import { ErrorHandler } from './errors/handler'
 import { Messages } from './messages'
 import { Character } from './character'
-import { Token, TokenType, Position, SourceLocation, TokenDefinition, ModuleContext, createContext, MacroDefinition } from './types'
+import { Token, TokenType, Position, SourceLocation, TokenDefinition, ModuleContext, createContext, MacroDefinition, ImportOptions } from './types'
+import { ImportModule } from './moduleReader'
 
 export interface TokenizerOptions {
   errorHandler: ErrorHandler
   enableMacro: boolean
+  importOptions?: ImportOptions
 }
 
 export class Tokenizer {
@@ -26,11 +28,13 @@ export class Tokenizer {
     const {
       errorHandler = new ErrorHandler(),
       enableMacro = true,
+      importOptions,
     } = options
 
     this.options = {
       errorHandler,
       enableMacro,
+      importOptions,
     }
 
     this.index = 0
@@ -145,9 +149,39 @@ export class Tokenizer {
         const end = this.getPosition(len)
         this.index += len
         this.pushToken(keywords[id], start, end)
+
+        if (keywords[id].value === 'importNameEnd')
+          this.scanImport()
+
         return true
       }
     }
+  }
+
+  private scanImport() {
+    let index = this.tokens.length - 2
+
+    const imports = []
+    while (index >= 0 && this.tokens[index].type === TokenType.Identifier) {
+      imports.unshift(this.tokens[index].value as string)
+      index -= 1
+    }
+
+    while (index >= 0 && this.tokens[index].value !== 'importEnd')
+      index -= 1
+
+    const name = this.tokens[index - 1].value as string
+
+    const context = ImportModule(name, this.options.importOptions)
+    const tokenizer = new Tokenizer(context, this.options)
+
+    tokenizer.getTokens()
+
+    this.context.imports.push({
+      name,
+      imports,
+      context,
+    })
   }
 
   private newLine() {

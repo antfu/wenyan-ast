@@ -8,8 +8,8 @@ export interface MacroDefinition {
 
 export interface ImportDefinition {
   name: string
-  items: string[]
-  source: 'stdlib' | 'fs' | 'network' | 'context'
+  imports: string[]
+  context: ModuleContext
 }
 
 export interface ModuleContext {
@@ -18,7 +18,7 @@ export interface ModuleContext {
   source: string
   expandedSource?: string
   moduleType: 'stdlib' | 'fs' | 'network' | 'context' | 'anonymous'
-  module: 'main' | 'module'
+  type: 'main' | 'module'
   macros: MacroDefinition[]
   tokens: Token[]
   ast: Program
@@ -28,7 +28,7 @@ export interface ModuleContext {
 
 export function createContext(
   source: string,
-  module: ModuleContext['module'] = 'main',
+  module: ModuleContext['type'] = 'main',
   name?: string,
   moduleType: ModuleContext['moduleType'] = 'anonymous',
   entryPath?: string,
@@ -36,7 +36,7 @@ export function createContext(
   return {
     source,
     expandedSource: source,
-    module,
+    type: module,
     name,
     entryPath,
     moduleType,
