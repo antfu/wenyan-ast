@@ -5,7 +5,6 @@ import { ErrorHandler } from './errors/handler'
 
 export interface ParseOptions {
   errorHandler: ErrorHandler
-  context: ModuleContext
 }
 
 export class Parser {
@@ -17,20 +16,18 @@ export class Parser {
   protected scopeStack: ASTScope[] = []
 
   constructor(
-    public readonly source: string,
+    public readonly context: ModuleContext,
     options: Partial<ParseOptions> = {},
   ) {
     const {
       errorHandler = new ErrorHandler(),
-      context = createContext(),
     } = options
 
     this.options = {
       errorHandler,
-      context,
     }
 
-    this.tokenier = new Tokenizer(this.source, this.options)
+    this.tokenier = new Tokenizer(context, this.options)
   }
 
   public run() {
@@ -54,11 +51,11 @@ export class Parser {
   }
 
   get tokens() {
-    return this.options.context.tokens
+    return this.context.tokens
   }
 
   get ast() {
-    return this.options.context.ast
+    return this.context.ast
   }
 
   get errorHandler() {
@@ -94,7 +91,7 @@ export class Parser {
   }
 
   private preprocessTokens() {
-    this.options.context.tokens = this.tokens.filter(t => t.type !== TokenType.Punctuations)
+    this.context.tokens = this.tokens.filter(t => t.type !== TokenType.Punctuations)
   }
 
   protected pushScope(scope: ASTScope) {
@@ -760,13 +757,13 @@ export class Parser {
       pos: loc?.start,
       message,
       parameters,
-      source: this.source,
+      source: this.context.source,
     })
   }
 }
 
 export function parse(src: string, options: Partial<ParseOptions> = {}) {
-  const parser = new Parser(src, options)
+  const parser = new Parser(createContext(src), options)
   parser.run()
   return parser.ast
 }

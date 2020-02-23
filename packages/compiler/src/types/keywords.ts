@@ -132,8 +132,8 @@ export const KEYWORDS_ALL = {
   不知何禍歟: { type: TokenType.Try, value: 'catchAll' },
   乃作罷: { type: TokenType.Try, value: 'end' },
 
-  或云: { type: TokenType.Macro, value: 'from' },
-  蓋謂: { type: TokenType.Macro, value: 'to' },
+  或云: { type: TokenType.Macro, value: 'macroFrom' },
+  蓋謂: { type: TokenType.Macro, value: 'macroTo' },
 
   注曰: { type: TokenType.Comment, value: '' as string },
   疏曰: { type: TokenType.Comment, value: '' as string },

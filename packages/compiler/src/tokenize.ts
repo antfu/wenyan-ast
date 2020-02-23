@@ -3,49 +3,61 @@ import { KEYWORDS_MAX_LENGTH, KEYWORDS, KEYWORDS_NUMBERS, KEYWORDS_COMMENT } fro
 import { ErrorHandler } from './errors/handler'
 import { Messages } from './messages'
 import { Character } from './character'
-import { Token, TokenType, Position, SourceLocation, TokenDefinition, ModuleContext, createContext } from './types'
+import { Token, TokenType, Position, SourceLocation, TokenDefinition, ModuleContext, createContext, MacroDefinition } from './types'
 
 export interface TokenizerOptions {
   errorHandler: ErrorHandler
-  context: ModuleContext
+  enableMacro: boolean
 }
 
 export class Tokenizer {
   public readonly options: TokenizerOptions
-  private readonly length: number
 
   index: number
   lineNumber: number
   lineStart: number
   curlyStack: string[]
+  pendingMacro: Partial<MacroDefinition>
 
   constructor(
-    public readonly source: string,
+    public readonly context: ModuleContext,
     options: Partial<TokenizerOptions>,
   ) {
     const {
       errorHandler = new ErrorHandler(),
-      context = createContext(),
+      enableMacro = true,
     } = options
 
     this.options = {
       errorHandler,
-      context,
+      enableMacro,
     }
 
-    this.length = source.length
     this.index = 0
-    this.lineNumber = (source.length > 0) ? 1 : 0
+    this.lineNumber = (context.source.length > 0) ? 1 : 0
     this.lineStart = 0
     this.curlyStack = []
+    this.pendingMacro = {}
   }
 
   get tokens() {
-    return this.options.context.tokens
+    return this.context.tokens
   }
 
   set tokens(v) {
-    this.options.context.tokens = v
+    this.context.tokens = v
+  }
+
+  get source() {
+    return this.context.expandedSource || this.context.source
+  }
+
+  get length() {
+    return this.source.length
+  }
+
+  get originalSource() {
+    return this.context.source
   }
 
   getNextToken(): Token {
@@ -278,7 +290,62 @@ export class Tokenizer {
 
   public scanBracket() {
     const { type, chars, start } = this.scanBracketPair()
+
+    // scan macro
+    if (this.options.enableMacro && type === TokenType.String) {
+      const last = this.tokens[this.tokens.length - 1]
+      if (last.value === 'macroFrom') {
+        this.pendingMacro.from = chars
+      }
+      else if (last.value === 'macroTo') {
+        this.pendingMacro.to = chars
+        this.pushPendingMacro()
+      }
+    }
+
     this.pushToken({ type, value: chars }, start)
+  }
+
+  private pushPendingMacro() {
+    if (!this.options.enableMacro)
+      return
+
+    let { from, to } = this.pendingMacro as MacroDefinition
+
+    const ins = from.match(/「[甲乙丙丁戊己庚辛壬癸]」/g)
+    const ous = to.match(/「[甲乙丙丁戊己庚辛壬癸]」/g)
+
+    if (ins !== null && ous !== null) {
+      for (let k = 0; k < ous.length; k++) {
+        const ii = ins.indexOf(ous[k])
+        if (ii >= 0)
+          to = to.replace(new RegExp(ous[k], 'g'), `$${ii + 1}`)
+      }
+    }
+    from = from.replace(/「[甲乙丙丁戊己庚辛壬癸]」/g, '(.+?)')
+
+    const macro = { from, to }
+    this.expandMacro(macro)
+    this.context.macros.push(macro)
+    this.pendingMacro = {}
+  }
+
+  private expandMacro(macros: MacroDefinition | MacroDefinition[]) {
+    if (!this.options.enableMacro)
+      return
+
+    if (!Array.isArray(macros))
+      macros = [macros]
+
+    const before = this.source.slice(0, this.index)
+    let after = this.source.slice(this.index)
+
+    for (const macro of macros) {
+      const from = new RegExp(macro.from)
+
+      after = after.replace(from, macro.to)
+    }
+    this.context.expandedSource = before + after
   }
 
   /**
@@ -325,5 +392,5 @@ export function tokenize(src: string, options: Partial<TokenizerOptions> = {}) {
   const {
     errorHandler = new ErrorHandler(),
   } = options
-  return new Tokenizer(src, { errorHandler }).getTokens()
+  return new Tokenizer(createContext(src), { errorHandler }).getTokens()
 }

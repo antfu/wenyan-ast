@@ -2,7 +2,8 @@ import { Token } from './tokens'
 import { Program } from './ast'
 
 export interface MacroDefinition {
-  // TODO:
+  from: string
+  to: string
 }
 
 export interface ImportDefinition {
@@ -14,22 +15,26 @@ export interface ImportDefinition {
 export interface ModuleContext {
   name?: string
   entryPath?: string
+  source: string
+  expandedSource?: string
   module: 'main' | 'module'
-  macro: MacroDefinition[]
+  macros: MacroDefinition[]
   tokens: Token[]
   ast: Program
   compiled?: string
   imports: ImportDefinition[]
 }
 
-export function createContext(module: ModuleContext['module'] = 'main', name?: string, entryPath?: string): ModuleContext {
+export function createContext(source: string, module: ModuleContext['module'] = 'main', name?: string, entryPath?: string): ModuleContext {
   return {
+    source,
+    expandedSource: source,
     module,
     name,
     entryPath,
     tokens: [],
     imports: [],
-    macro: [],
+    macros: [],
     ast: {
       type: 'Program',
       body: [],

@@ -1,14 +1,13 @@
 import transpilers from './transpilers'
 import { ErrorHandler } from './errors/handler'
 import { Parser } from './parse'
-import { AST, Token, ModuleContext, createContext } from './types'
+import { ModuleContext, createContext } from './types'
 import { Transplier } from './transpilers/base'
 
 export interface CompileOptions {
   lang: 'js'
   errorHandler: ErrorHandler
   sourcemap: boolean
-  context: ModuleContext
 }
 
 export class Compiler {
@@ -18,23 +17,21 @@ export class Compiler {
   private parser: Parser
 
   constructor(
-    public readonly source: string,
+    public readonly context: ModuleContext,
     options: Partial<CompileOptions> = {},
   ) {
     const {
       lang = 'js',
       sourcemap = true,
       errorHandler = new ErrorHandler(),
-      context = createContext(),
     } = options
 
     this.options = {
       lang,
       errorHandler,
       sourcemap,
-      context,
     }
-    this.parser = new Parser(this.source, this.options)
+    this.parser = new Parser(context, this.options)
     this._transpiler = new (transpilers[lang])(this.options)
   }
 
@@ -48,7 +45,7 @@ export class Compiler {
       error = e
     }
 
-    this.options.context.compiled = this._transpiler.transpile(this.ast)
+    this.context.compiled = this._transpiler.transpile(this.ast)
     this._initialized = true
 
     if (error)
@@ -56,15 +53,15 @@ export class Compiler {
   }
 
   get ast() {
-    return this.options.context.ast
+    return this.context.ast
   }
 
   get tokens() {
-    return this.options.context.tokens
+    return this.context.tokens
   }
 
   get compiled() {
-    return this.options.context.compiled || ''
+    return this.context.compiled || ''
   }
 
   get initialized() {
@@ -73,7 +70,7 @@ export class Compiler {
 }
 
 export function compile(source: string, options: Partial<CompileOptions> = {}) {
-  const compiler = new Compiler(source, options)
+  const compiler = new Compiler(createContext(source), options)
   compiler.run()
   return compiler.compiled
 }

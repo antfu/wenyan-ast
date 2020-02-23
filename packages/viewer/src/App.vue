@@ -40,7 +40,7 @@ import prettier from 'prettier/standalone'
 // @ts-ignore
 import parserBabylon from 'prettier/parser-babylon'
 import { useStoragePlain } from '@vueuse/core'
-import { Compiler, Program, Token, SourceLocation } from '../../compiler/src'
+import { Compiler, Program, Token, SourceLocation, createContext } from '../../compiler/src'
 import { printError } from '../../cli/src/error-log'
 import examples from '../../examples'
 
@@ -60,9 +60,11 @@ export default {
 
     watch(code, () => {
       console.clear()
-      const compiler = new Compiler(code.value, {
-        sourcemap: true,
-      })
+      const compiler = new Compiler(
+        createContext(code.value),
+        {
+          sourcemap: true,
+        })
       try {
         compiler.run()
         tokens.value = compiler.tokens
