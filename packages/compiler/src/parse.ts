@@ -1,4 +1,4 @@
-import { Token, TokenType, AST, VariableDeclaration, VarType, ASTScope, Accessability, FunctionDeclaration, Statement, IfStatement, Expression, Return, FunctionCall, OperationStatement, BinaryOperation, WhileStatement, ExpressStatement, Identifier, ReassignStatement, Answer, ForInStatement, Position, Continue, Break, Comment, Print, ASTValue, ModuleContext, createContext, ImportOptions, ImportStatement, MacroStatement, ArrayPush } from './types'
+import { Token, TokenType, AST, VariableDeclaration, VarType, ASTScope, Accessability, FunctionDeclaration, Statement, IfStatement, Expression, Return, FunctionCall, OperationStatement, BinaryOperation, WhileStatement, ExpressStatement, Identifier, ReassignStatement, Answer, ForInStatement, Position, Continue, Break, Comment, Print, ASTValue, ModuleContext, createContext, ImportOptions, ImportStatement, MacroStatement, ArrayPush, ArrayConcat } from './types'
 import { Tokenizer, tokenizeContext, TokenizerOptions } from './tokenize'
 import { Messages } from './messages'
 import { ErrorHandler } from './errors/handler'
@@ -533,6 +533,27 @@ export class Parser {
     return node
   }
 
+  // 銜「首」以「頷」以「尾」。名之曰「乙」。
+  private scanArrayConcat() {
+    const node: ArrayConcat = {
+      type: 'ArrayConcat',
+      target: this.tokenToIdentifierOrAnswer(this.next),
+      values: [],
+      assign: undefined,
+    }
+
+    this.index += 2
+
+    while (!this.eof && this.current.type === TokenType.OperationOrder && this.current.value === 'left') {
+      node.values.push(this.tokenToIdentifier(this.next))
+      this.index += 2
+    }
+
+    node.assign = this.scanName()
+
+    return node
+  }
+
   // 吾嘗觀「「算經」」之書。方悟「絕對」「平方根」之義。
   private scanImportStatement() {
     this.index += 1
@@ -577,6 +598,7 @@ export class Parser {
     return node
   }
 
+  // 名之曰「乙」。
   private scanName() {
     if (this.current.type === TokenType.Name) {
       this.typeassert(this.next, TokenType.Identifier)
@@ -860,6 +882,11 @@ export class Parser {
 
       if (this.current.value === 'push') {
         this.pushAST(this.scanArrayPush(), start)
+        continue
+      }
+
+      if (this.current.value === 'concat') {
+        this.pushAST(this.scanArrayConcat(), start)
         continue
       }
 

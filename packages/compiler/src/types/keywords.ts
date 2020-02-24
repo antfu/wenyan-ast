@@ -112,7 +112,7 @@ export const KEYWORDS_ALL = {
   之長: { type: TokenType.ArrayOperator, value: 'length' },
   之: { type: TokenType.ArrayOperator, value: 'item' },
   充: { type: TokenType.ArrayOperator, value: 'push' },
-  銜: { type: TokenType.ArrayOperator, value: 'cat' },
+  銜: { type: TokenType.ArrayOperator, value: 'concat' },
   其餘: { type: TokenType.ArrayOperator, value: 'rest' },
 
   陰: { type: TokenType.Bool, value: false },

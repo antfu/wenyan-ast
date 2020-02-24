@@ -182,6 +182,13 @@ export interface ArrayPush extends Node {
   values: (ASTValue | Identifier)[]
 }
 
+export interface ArrayConcat extends Node {
+  type: 'ArrayConcat'
+  target: Identifier | Answer
+  values: (Identifier | Answer)[]
+  assign: AssignTarget
+}
+
 export interface FunctionCall extends Node {
   type: 'FunctionCall'
   function: Identifier
@@ -213,6 +220,7 @@ export type Statement =
   | VariableDeclaration
   | WhileStatement
   | ArrayPush
+  | ArrayConcat
 
 export type ASTScope =
   | Program

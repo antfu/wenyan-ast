@@ -1,5 +1,5 @@
 /* eslint-disable no-case-declarations */
-import { ASTScope, VarType, Accessability, IfStatement, ASTValue, Expression, FunctionCall, WhileStatement, ExpressStatement, Print, ReassignStatement, AssignTarget, ForInStatement, ModuleContext, ImportStatement, ArrayPush, Identifier, Answer } from '../types'
+import { ASTScope, VarType, Accessability, IfStatement, ASTValue, Expression, FunctionCall, WhileStatement, ExpressStatement, Print, ReassignStatement, AssignTarget, ForInStatement, ModuleContext, ImportStatement, ArrayPush, Identifier, Answer, ArrayConcat } from '../types'
 import { Transplier } from './base'
 import { getCompiledFromContext } from '.'
 
@@ -166,9 +166,15 @@ export class JavascriptTranspiler extends Transplier {
   }
 
   private transArrayPush(s: ArrayPush) {
-    const name = s.target === 'Answer' ? this.currentVar : s.target.name
+    const name = this.transValue(s.target)
     const values = s.values.map(v => this.transValue(v)).join(',')
     return `${name}.push(${values});`
+  }
+
+  private transArrayConcat(s: ArrayConcat) {
+    const name = this.transValue(s.target)
+    const values = s.values.map(v => `.concat(${this.transValue(v)})`).join('')
+    return this.transAssign(s.assign, `${name}${values}`)
   }
 
   private transScope(scope: ASTScope) {
@@ -276,6 +282,10 @@ export class JavascriptTranspiler extends Transplier {
 
         case 'ArrayPush':
           this.context.compiled += this.transArrayPush(s)
+          break
+
+        case 'ArrayConcat':
+          this.context.compiled += this.transArrayConcat(s)
           break
 
         default:
