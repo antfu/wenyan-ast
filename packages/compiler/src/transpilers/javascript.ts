@@ -1,5 +1,5 @@
 /* eslint-disable no-case-declarations */
-import { ASTScope, VarType, Accessability, IfStatement, ASTValue, Expression, FunctionCall, WhileStatement, ExpressStatement, Print, ReassignStatement, AssignTarget, ForRangeStatement, ModuleContext, ImportStatement } from '../types'
+import { ASTScope, VarType, Accessability, IfStatement, ASTValue, Expression, FunctionCall, WhileStatement, ExpressStatement, Print, ReassignStatement, AssignTarget, ForInStatement, ModuleContext, ImportStatement, ArrayPush, Identifier, Answer } from '../types'
 import { Transplier } from './base'
 import { getCompiledFromContext } from '.'
 
@@ -20,10 +20,12 @@ export class JavascriptTranspiler extends Transplier {
       : `var ${name}=`
   }
 
-  private transForRangeStatement(s: ForRangeStatement) {
-    const name = s.assign?.name || this.randomVar()
-    const range = typeof s.range === 'number' ? s.range : s.range.name
-    return `for (let ${name}=0;${name}<${range};${name}++){${this.transScope(s)}}`
+  private transForInStatement(s: ForInStatement) {
+    const name = s.iterator?.name || this.randomVar()
+    if (typeof s.collection === 'number')
+      return `for (let ${name}=0;${name}<${s.collection};${name}++){${this.transScope(s)}}`
+    else
+      return `for (let ${name} of ${s.collection.name}){${this.transScope(s)}}`
   }
 
   private transExpressions(expressions: Expression | Expression[]): string {
@@ -52,13 +54,16 @@ export class JavascriptTranspiler extends Transplier {
         return `${this.transExpressions(i.left)}${operator}${this.transExpressions(i.right)}`
       }
       else if (i.type === 'Value') {
-        return this.transpileValue(i)
+        return this.transValue(i)
       }
       else if (i.type === 'ArrayOperation' && i.operator === 'length') {
         return `${i.identifier.name}.length`
       }
       else if (i.type === 'ArrayOperation' && i.operator === 'item') {
-        return `${i.identifier.name}[${this.transExpressions(i.argument)}]`
+        return `${i.identifier.name}[${this.transExpressions(i.argument)} - 1]`
+      }
+      else if (i.type === 'ArrayOperation' && i.operator === 'rest') {
+        return `${i.identifier.name}.slice(1)`
       }
       else {
         // @ts-ignore
@@ -111,7 +116,13 @@ export class JavascriptTranspiler extends Transplier {
     return getCompiledFromContext(m, this.options)
   }
 
-  private transpileValue(node: ASTValue) {
+  private transValue(node: ASTValue | Identifier | Answer) {
+    if (node === 'Answer')
+      return this.currentVar()
+
+    if (node.type === 'Identifier')
+      return node.name
+
     let value = node.value
 
     if (value === undefined) {
@@ -154,6 +165,12 @@ export class JavascriptTranspiler extends Transplier {
     return this.transAssign(s.assign, this.transExpressions(s.value))
   }
 
+  private transArrayPush(s: ArrayPush) {
+    const name = s.target === 'Answer' ? this.currentVar : s.target.name
+    const values = s.values.map(v => this.transValue(v)).join(',')
+    return `${name}.push(${values});`
+  }
+
   private transScope(scope: ASTScope) {
     this.context.compiled = ''
     const strayVars = []
@@ -167,7 +184,7 @@ export class JavascriptTranspiler extends Transplier {
               name = this.nextVar()
               strayVars.push(name)
             }
-            const value = this.transpileValue(s.values[j] || { value: undefined, varType: s.varType, type: 'Value' })
+            const value = this.transValue(s.values[j] || { value: undefined, varType: s.varType, type: 'Value' })
             this.context.compiled += `${this.getAccessDecaleration(name, s.accessability)}${value};`
           }
           break
@@ -246,8 +263,8 @@ export class JavascriptTranspiler extends Transplier {
           this.context.compiled += this.transReassignStatement(s)
           break
 
-        case 'ForRangeStatement':
-          this.context.compiled += this.transForRangeStatement(s)
+        case 'ForInStatement':
+          this.context.compiled += this.transForInStatement(s)
           break
 
         case 'MacroStatement':
@@ -255,6 +272,10 @@ export class JavascriptTranspiler extends Transplier {
 
         case 'ImportStatement':
           this.context.compiled += this.transImportStatement(s)
+          break
+
+        case 'ArrayPush':
+          this.context.compiled += this.transArrayPush(s)
           break
 
         default:

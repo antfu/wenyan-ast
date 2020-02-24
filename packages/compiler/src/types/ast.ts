@@ -69,10 +69,10 @@ export type ArrayOperation = {
   type: 'ArrayOperation'
   identifier: Identifier
 } & ({
-  operator: 'length'
+  operator: 'length' | 'rest'
 } | {
   operator: 'item'
-  argument: Identifier
+  argument: Identifier | ASTValue
 })
 
 export type Expression =
@@ -105,11 +105,11 @@ export interface WhileStatement extends Node {
   body: Statement[]
 }
 
-export interface ForRangeStatement extends Node {
-  type: 'ForRangeStatement'
+export interface ForInStatement extends Node {
+  type: 'ForInStatement'
   body: Statement[]
-  assign?: Identifier
-  range: Identifier | number
+  iterator?: Identifier
+  collection: Identifier | number
 }
 
 export interface TryStatement extends Node {
@@ -176,6 +176,12 @@ export interface MacroStatement extends Node {
   to: string
 }
 
+export interface ArrayPush extends Node {
+  type: 'ArrayPush'
+  target: Identifier | Answer
+  values: (ASTValue | Identifier)[]
+}
+
 export interface FunctionCall extends Node {
   type: 'FunctionCall'
   function: Identifier
@@ -193,7 +199,7 @@ export type Statement =
   | Comment
   | Continue
   | ExpressStatement
-  | ForRangeStatement
+  | ForInStatement
   | FunctionCall
   | FunctionDeclaration
   | IfStatement
@@ -206,12 +212,13 @@ export type Statement =
   | TryStatement
   | VariableDeclaration
   | WhileStatement
+  | ArrayPush
 
 export type ASTScope =
   | Program
   | FunctionDeclaration
   | IfStatement
   | WhileStatement
-  | ForRangeStatement
+  | ForInStatement
   | TryStatement
   | CatchStatement

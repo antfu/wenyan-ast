@@ -1,4 +1,4 @@
-import { Token, TokenType, AST, VariableDeclaration, VarType, ASTScope, Accessability, FunctionDeclaration, Statement, IfStatement, Expression, Return, FunctionCall, OperationStatement, BinaryOperation, WhileStatement, ExpressStatement, Identifier, ReassignStatement, Answer, ForRangeStatement, Position, Continue, Break, Comment, Print, ASTValue, ModuleContext, createContext, ImportOptions, ImportStatement, MacroStatement } from './types'
+import { Token, TokenType, AST, VariableDeclaration, VarType, ASTScope, Accessability, FunctionDeclaration, Statement, IfStatement, Expression, Return, FunctionCall, OperationStatement, BinaryOperation, WhileStatement, ExpressStatement, Identifier, ReassignStatement, Answer, ForInStatement, Position, Continue, Break, Comment, Print, ASTValue, ModuleContext, createContext, ImportOptions, ImportStatement, MacroStatement, ArrayPush } from './types'
 import { Tokenizer, tokenizeContext, TokenizerOptions } from './tokenize'
 import { Messages } from './messages'
 import { ErrorHandler } from './errors/handler'
@@ -281,6 +281,26 @@ export class Parser {
     return node
   }
 
+  // 凡「甲餘」中之「丁」。
+  private scanForInStatement() {
+    this.valueassert(this.next2, 'forIn', '中之')
+
+    const node: ForInStatement = {
+      type: 'ForInStatement',
+      body: [],
+      collection: this.tokenToIdentifier(this.next),
+      iterator: this.tokenToIdentifier(this.next3),
+    }
+
+    this.index += 4
+
+    this.parseScope(node, () => this.current.value === 'end')
+
+    this.index += 1
+
+    return node
+  }
+
   // 昔之「乙」者今其是矣。
   private scanReassignStatement() {
     const assign: Identifier = this.tokenToIdentifier(this.next)
@@ -308,7 +328,7 @@ export class Parser {
     return node
   }
 
-  private scanIfStatement() {
+  private scanIfStatement(isElseIf = false) {
     let condition: Expression | undefined
 
     if (this.current.value === 'if'
@@ -352,9 +372,9 @@ export class Parser {
     )
 
     if (this.current.value === 'else')
-      node.else = this.scanIfStatement()
+      node.else = this.scanIfStatement(true)
 
-    if (this.current.value === 'end')
+    if (!isElseIf)
       this.index += 1
 
     return node
@@ -444,9 +464,9 @@ export class Parser {
 
     this.assert(this.next2.value === 'forRange2', 'expecting 遍')
 
-    const node: ForRangeStatement = {
-      type: 'ForRangeStatement',
-      range,
+    const node: ForInStatement = {
+      type: 'ForInStatement',
+      collection: range,
       body: [],
     }
 
@@ -490,6 +510,24 @@ export class Parser {
       type: 'OperationStatement',
       expression,
       assign: this.scanName(),
+    }
+
+    return node
+  }
+
+  // 充「己」以五。以三。以二十。以八。以三十五。以七百。
+  private scanArrayPush() {
+    const node: ArrayPush = {
+      type: 'ArrayPush',
+      target: this.tokenToIdentifierOrAnswer(this.next),
+      values: [],
+    }
+
+    this.index += 2
+
+    while (!this.eof && this.current.type === TokenType.OperationOrder && this.current.value === 'left') {
+      node.values.push(this.tokenToIdentifierOrValue(this.next))
+      this.index += 2
     }
 
     return node
@@ -557,6 +595,20 @@ export class Parser {
     }
   }
 
+  private tokenToIdentifierOrAnswer(token: Token): Identifier | Answer {
+    if (token.type === TokenType.Answer)
+      return 'Answer'
+    else
+      return this.tokenToIdentifier(token)
+  }
+
+  private tokenToIdentifierOrValue(token: Token) {
+    if (token.type === TokenType.Identifier)
+      return this.tokenToIdentifier(token)
+    else
+      return this.tokenToValue(token)
+  }
+
   private tokenToValue(token: Token, varType?: VarType): ASTValue {
     if (!varType) {
       varType = ({
@@ -614,11 +666,21 @@ export class Parser {
 
     if (tokens.length === 3) {
       if (tokens[1].type === TokenType.ArrayOperator && tokens[1].value === 'item') {
-        return {
-          type: 'ArrayOperation',
-          operator: 'item',
-          identifier: this.tokenToIdentifier(tokens[0]),
-          argument: this.tokenToIdentifier(tokens[2]), // TODO: number, string
+        // 之其餘
+        if (tokens[2].value === 'rest') {
+          return {
+            type: 'ArrayOperation',
+            operator: 'rest',
+            identifier: this.tokenToIdentifier(tokens[0]),
+          }
+        }
+        else {
+          return {
+            type: 'ArrayOperation',
+            operator: 'item',
+            identifier: this.tokenToIdentifier(tokens[0]),
+            argument: this.tokenToIdentifierOrValue(tokens[2]), // TODO: number, string
+          }
         }
       }
     }
@@ -772,18 +834,32 @@ export class Parser {
         continue
       }
 
+      // for
       if (this.current.value === 'forRange1') {
         this.pushAST(this.scanForRangeStatement(), start)
         continue
       }
 
+      // for in
+      if (this.current.value === 'for') {
+        this.pushAST(this.scanForInStatement(), start)
+        continue
+      }
+
+      // import
       if (this.current.value === 'importStart') {
         this.pushAST(this.scanImportStatement(), start)
         continue
       }
 
+      // macro
       if (this.current.value === 'macroFrom') {
         this.pushAST(this.scanMacro(), start)
+        continue
+      }
+
+      if (this.current.value === 'push') {
+        this.pushAST(this.scanArrayPush(), start)
         continue
       }
 
@@ -803,6 +879,11 @@ export class Parser {
     if (!Array.isArray(types))
       types = [types]
     if (!types.includes(token.type))
+      this.throwUnexpectedToken(`Invalid token. Expecting ${message}`, token.loc)
+  }
+
+  private valueassert(token: Token, value: string| number|undefined, message = Messages.UnexpectedTokenIllegal) {
+    if (token.value !== value)
       this.throwUnexpectedToken(`Invalid token. Expecting ${message}`, token.loc)
   }
 
