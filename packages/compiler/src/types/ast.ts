@@ -109,7 +109,14 @@ export interface ForInStatement extends Node {
   type: 'ForInStatement'
   body: Statement[]
   iterator?: Identifier
-  collection: Identifier | number
+  collection: Identifier
+}
+
+export interface ForRangeStatement extends Node {
+  type: 'ForRangeStatement'
+  body: Statement[]
+  iterator?: Identifier
+  range: Identifier | number
 }
 
 export interface TryStatement extends Node {
@@ -152,7 +159,7 @@ export interface ExpressStatement extends Node {
 export interface ReassignStatement extends Node {
   type: 'ReassignStatement'
   value: Expression
-  assign?: AssignTarget
+  assign: Expression
 }
 
 export interface Print extends Node {
@@ -207,6 +214,7 @@ export type Statement =
   | Continue
   | ExpressStatement
   | ForInStatement
+  | ForRangeStatement
   | FunctionCall
   | FunctionDeclaration
   | IfStatement
@@ -228,5 +236,6 @@ export type ASTScope =
   | IfStatement
   | WhileStatement
   | ForInStatement
+  | ForRangeStatement
   | TryStatement
   | CatchStatement

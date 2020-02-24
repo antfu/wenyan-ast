@@ -1,5 +1,5 @@
 /* eslint-disable no-case-declarations */
-import { ASTScope, VarType, Accessability, IfStatement, ASTValue, Expression, FunctionCall, WhileStatement, ExpressStatement, Print, ReassignStatement, AssignTarget, ForInStatement, ModuleContext, ImportStatement, ArrayPush, Identifier, Answer, ArrayConcat } from '../types'
+import { ASTScope, VarType, Accessability, IfStatement, ASTValue, Expression, FunctionCall, WhileStatement, ExpressStatement, Print, ReassignStatement, AssignTarget, ForInStatement, ModuleContext, ImportStatement, ArrayPush, Identifier, Answer, ArrayConcat, ForRangeStatement } from '../types'
 import { Transplier } from './base'
 import { getCompiledFromContext } from '.'
 
@@ -20,12 +20,15 @@ export class JavascriptTranspiler extends Transplier {
       : `var ${name}=`
   }
 
+  private transForRangeStatement(s: ForRangeStatement) {
+    const name = s.iterator?.name || this.randomVar()
+    const range = typeof s.range === 'number' ? s.range : s.range.name
+    return `for (let ${name}=0;${name}<${range};${name}++){${this.transScope(s)}}`
+  }
+
   private transForInStatement(s: ForInStatement) {
     const name = s.iterator?.name || this.randomVar()
-    if (typeof s.collection === 'number')
-      return `for (let ${name}=0;${name}<${s.collection};${name}++){${this.transScope(s)}}`
-    else
-      return `for (let ${name} of ${s.collection.name}){${this.transScope(s)}}`
+    return `for (let ${name} of ${s.collection.name}){${this.transScope(s)}}`
   }
 
   private transExpressions(expressions: Expression | Expression[]): string {
@@ -162,7 +165,7 @@ export class JavascriptTranspiler extends Transplier {
   }
 
   private transReassignStatement(s: ReassignStatement) {
-    return this.transAssign(s.assign, this.transExpressions(s.value))
+    return `${this.transExpressions(s.assign)}=${this.transExpressions(s.value)};`
   }
 
   private transArrayPush(s: ArrayPush) {
@@ -267,6 +270,10 @@ export class JavascriptTranspiler extends Transplier {
 
         case 'ReassignStatement':
           this.context.compiled += this.transReassignStatement(s)
+          break
+
+        case 'ForRangeStatement':
+          this.context.compiled += this.transForRangeStatement(s)
           break
 
         case 'ForInStatement':

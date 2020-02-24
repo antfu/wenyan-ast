@@ -1,4 +1,4 @@
-import { Token, TokenType, AST, VariableDeclaration, VarType, ASTScope, Accessability, FunctionDeclaration, Statement, IfStatement, Expression, Return, FunctionCall, OperationStatement, BinaryOperation, WhileStatement, ExpressStatement, Identifier, ReassignStatement, Answer, ForInStatement, Position, Continue, Break, Comment, Print, ASTValue, ModuleContext, createContext, ImportOptions, ImportStatement, MacroStatement, ArrayPush, ArrayConcat } from './types'
+import { Token, TokenType, AST, VariableDeclaration, VarType, ASTScope, Accessability, FunctionDeclaration, Statement, IfStatement, Expression, Return, FunctionCall, OperationStatement, BinaryOperation, WhileStatement, ExpressStatement, Identifier, ReassignStatement, Answer, ForInStatement, Position, Continue, Break, Comment, Print, ASTValue, ModuleContext, createContext, ImportOptions, ImportStatement, MacroStatement, ArrayPush, ArrayConcat, ForRangeStatement } from './types'
 import { Tokenizer, tokenizeContext, TokenizerOptions } from './tokenize'
 import { Messages } from './messages'
 import { ErrorHandler } from './errors/handler'
@@ -303,17 +303,20 @@ export class Parser {
 
   // 昔之「乙」者今其是矣。
   private scanReassignStatement() {
-    const assign: Identifier = this.tokenToIdentifier(this.next)
-
-    // 昔之「乙」
-    this.index += 2
-
-    // 者
-    if (this.current.value === 'conj')
-      this.index += 1
-
-    // 今
+    // 昔之
     this.index += 1
+
+    const tokens: Token[] = []
+
+    while (!this.eof && this.current.value !== 'conj') {
+      tokens.push(this.current)
+      this.index += 1
+    }
+
+    const assign = this.parseExpressions(tokens)
+
+    // 者 今
+    this.index += 2
 
     // xxx
     const node: ReassignStatement = {
@@ -464,9 +467,9 @@ export class Parser {
 
     this.assert(this.next2.value === 'forRange2', 'expecting 遍')
 
-    const node: ForInStatement = {
-      type: 'ForInStatement',
-      collection: range,
+    const node: ForRangeStatement = {
+      type: 'ForRangeStatement',
+      range,
       body: [],
     }
 
