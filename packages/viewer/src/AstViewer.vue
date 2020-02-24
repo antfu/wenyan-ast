@@ -3,14 +3,14 @@
   :class='{ hover }'
 )
   .type(
-    @click='expanded = !expanded'
+    @click='i_expanded = !i_expanded'
     @mouseover='mouseover'
     @mouseleave='mouseleave'
   ) {{node.type}}
-    .dots(v-if='!expanded') ...
+    .dots(v-if='!i_expanded') ...
 
   .field(
-    v-if='expanded'
+    v-if='i_expanded'
     v-for='value, key in node'
     :key='key'
   )
@@ -59,6 +59,7 @@ export default {
   data() {
     return {
       hover: false,
+      i_expanded: false,
     }
   },
   computed: {
@@ -74,6 +75,12 @@ export default {
         this.$emit('mouseover', this.node.loc)
       else
         this.$emit('mouseleave', this.node.loc)
+    },
+    expanded: {
+      immediate: true,
+      handler() {
+        this.i_expanded = this.expanded
+      },
     },
   },
   methods: {

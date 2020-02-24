@@ -14,18 +14,20 @@
 
     .tab-contents
       .tab-content(v-show='tab === 0')
-        token-viewer(
-          :tokens='tokens'
-          @mouseover='highlight'
-          @mouseleave='clearHighlight'
-        )
+        viewer-switch(:data='tokens')
+          token-viewer(
+            :tokens='tokens'
+            @mouseover='highlight'
+            @mouseleave='clearHighlight'
+          )
       .tab-content(v-show='tab === 1')
-        ast-viewer(
-          :node='ast'
-          :expanded='true'
-          @mouseover='highlight'
-          @mouseleave='clearHighlight'
-        )
+        viewer-switch(:data='ast')
+          ast-viewer(
+            :node='ast'
+            :expanded='true'
+            @mouseover='highlight'
+            @mouseleave='clearHighlight'
+          )
       .tab-content.compiled(v-show='tab === 2')
         codemirror(:value='compiled' :options='{mode: "javascript", readOnly: true}' ref='cm2')
       .tab-content(v-show='tab === 3')

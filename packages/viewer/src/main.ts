@@ -5,6 +5,7 @@ import VueCodemirror from 'vue-codemirror'
 import App from './App.vue'
 import TokenViewer from './TokenViewer.vue'
 import AstViewer from './AstViewer.vue'
+import ViewerSwitch from './ViewerSwitch.vue'
 
 import 'codemirror/lib/codemirror.css'
 import 'codemirror/mode/javascript/javascript.js'
@@ -26,6 +27,7 @@ Vue.use(VueCodemirror, {
 })
 Vue.component('AstViewer', AstViewer)
 Vue.component('TokenViewer', TokenViewer)
+Vue.component('ViewerSwitch', ViewerSwitch)
 
 new Vue({
   render: h => h(App),
