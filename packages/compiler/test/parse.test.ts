@@ -1,18 +1,20 @@
 import { parse } from '../src/parse'
-import { VarType, VariableDeclaration, Accessability, Program } from '../src/types'
+import { VarType, VariableDeclaration, Accessability, AST, Statement } from '../src/types'
+import { clearLocation } from '../../utils'
 
-const p = (s: string) => parse(s, { sourcemap: false })
+const expectParsed = <T extends AST>(s: string, v: T) => expect(clearLocation(parse(s))).toEqual<T>(v)
+const expectBody = <T extends Statement[]>(s: string, v: T) => expect(clearLocation(parse(s).body)).toEqual<T>(v)
 
 describe('parse', () => {
   it('empty', () => {
-    expect(p('')).toEqual<Program>({
+    expectParsed('', {
       type: 'Program',
       body: [],
     })
   })
 
   it('var a = 3', () => {
-    expect(p('吾有一數。曰三。名之曰「甲」。').body).toEqual([{
+    expectBody('吾有一數。曰三。名之曰「甲」。', [{
       type: 'VariableDeclaration',
       count: 1,
       varType: VarType.Number,
@@ -27,29 +29,28 @@ describe('parse', () => {
   })
 
   it('multiple vars', () => {
-    expect(p('吾有三數。曰一。曰三。曰五。名之曰「甲」曰「乙」曰「丙」。').body).toEqual<VariableDeclaration[]>([
-      {
-        type: 'VariableDeclaration',
-        count: 3,
+    expectBody('吾有三數。曰一。曰三。曰五。名之曰「甲」曰「乙」曰「丙」。', [{
+      type: 'VariableDeclaration',
+      count: 3,
+      varType: VarType.Number,
+      names: ['甲', '乙', '丙'],
+      values: [{
+        type: 'Value',
         varType: VarType.Number,
-        names: ['甲', '乙', '丙'],
-        values: [{
-          type: 'Value',
-          varType: VarType.Number,
-          value: 1,
-        },
-        {
-          type: 'Value',
-          varType: VarType.Number,
-          value: 3,
-        },
-        {
-          type: 'Value',
-          varType: VarType.Number,
-          value: 5,
-        }],
-        accessability: Accessability.private,
+        value: 1,
       },
+      {
+        type: 'Value',
+        varType: VarType.Number,
+        value: 3,
+      },
+      {
+        type: 'Value',
+        varType: VarType.Number,
+        value: 5,
+      }],
+      accessability: Accessability.private,
+    },
     ])
   })
 })
