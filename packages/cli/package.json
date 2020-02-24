@@ -1,0 +1,26 @@
+{
+  "name": "@wenyanlang/cli",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "rollup -c"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "commander": "4.1.1",
+    "fast-glob": "3.2.2",
+    "find-up": "4.1.0",
+    "fs-extra": "8.1.0",
+    "chalk": "3.0.0"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "8.1.0",
+    "ts-node": "8.6.2",
+    "rollup": "1.31.1",
+    "rollup-plugin-typescript2": "0.26.0",
+    "@rollup/plugin-json": "4.0.2"
+  }
+}
