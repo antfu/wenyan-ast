@@ -5,8 +5,9 @@
   "description": "",
   "main": "dist/index.js",
   "scripts": {
-    "bootstrap": "lerna bootstrap",
+    "bootstrap": "lerna bootstrap && lerna run pack",
     "build": "lerna run build",
+    "pack": "lerna run pack",
     "dev": "npm -C packages/viewer run dev",
     "build:viewer": "npm -C packages/viewer run build",
     "publish:ci": "lerna run publish:ci",
