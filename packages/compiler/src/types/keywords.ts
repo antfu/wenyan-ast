@@ -26,6 +26,7 @@ export enum TokenType {
   Type = 'Type',
   PropertyDeclarion = 'PropertyDeclarion',
   Unknown = 'Unknown',
+  BooleanOperator = 'BooleanOperator'
 }
 
 export const KEYWORDS_NUMBERS = '負·又零〇一二三四五六七八九十百千萬億兆京垓秭穰溝澗正載極分釐毫絲忽微纖沙塵埃渺漠'
@@ -96,13 +97,13 @@ export const KEYWORDS_ALL = {
   不小於: { type: TokenType.ConditionOperator, value: '>=' },
   大於: { type: TokenType.ConditionOperator, value: '>' },
   小於: { type: TokenType.ConditionOperator, value: '<' },
+  中有陽乎: { type: TokenType.BooleanOperator, value: '||' },
+  中無陰乎: { type: TokenType.BooleanOperator, value: '&&' },
 
   加: { type: TokenType.Operator, value: '+' },
   減: { type: TokenType.Operator, value: '-' },
   乘: { type: TokenType.Operator, value: '*' },
   除: { type: TokenType.Operator, value: '/' },
-  中有陽乎: { type: TokenType.Operator, value: '||' },
-  中無陰乎: { type: TokenType.Operator, value: '&&' },
   變: { type: TokenType.Operator, value: 'not' },
   所餘幾何: { type: TokenType.Operator, value: 'mod' },
 

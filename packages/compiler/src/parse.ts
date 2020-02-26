@@ -1,4 +1,4 @@
-import { Token, TokenType, AST, VariableDeclaration, VarType, ASTScope, Accessability, FunctionDeclaration, Statement, IfStatement, Expression, Return, FunctionCall, OperationStatement, BinaryOperation, WhileStatement, ExpressStatement, Identifier, ReassignStatement, Answer, ForInStatement, Position, Continue, Break, Comment, Print, ASTValue, ModuleContext, createContext, ImportOptions, ImportStatement, MacroStatement, ArrayPush, ArrayConcat, ForRangeStatement } from './types'
+import { Token, TokenType, AST, VariableDeclaration, VarType, ASTScope, Accessability, FunctionDeclaration, Statement, IfStatement, Expression, Return, FunctionCall, OperationStatement, BinaryOperation, WhileStatement, ExpressStatement, Identifier, ReassignStatement, Answer, ForInStatement, Position, Continue, Break, Comment, Print, ASTValue, ModuleContext, createContext, ImportOptions, ImportStatement, MacroStatement, ArrayPush, ArrayConcat, ForRangeStatement, UnaryOperation } from './types'
 import { Tokenizer, tokenizeContext, TokenizerOptions } from './tokenize'
 import { Messages } from './messages'
 import { ErrorHandler } from './errors/handler'
@@ -177,7 +177,7 @@ export class Parser {
     asc.push(x)
     */
 
-    throw new Error('not yet')
+    this.throwUnexpectedToken()
   }
 
   // 施「漢諾塔」於「盤數」。於一。於二。於三。名之曰「史」。
@@ -306,14 +306,7 @@ export class Parser {
     // 昔之
     this.index += 1
 
-    const tokens: Token[] = []
-
-    while (!this.eof && this.current.value !== 'conj') {
-      tokens.push(this.current)
-      this.index += 1
-    }
-
-    const assign = this.parseExpressions(tokens)
+    const assign = this.scanExpression()
 
     // 者 今
     this.index += 2
@@ -321,7 +314,7 @@ export class Parser {
     // xxx
     const node: ReassignStatement = {
       type: 'ReassignStatement',
-      value: this.scanExpression(t => t.value === 'reassign3' || t.value === 'end'),
+      value: this.scanExpression(),
       assign,
     }
 
@@ -388,22 +381,9 @@ export class Parser {
     this.index += 1
     this.typeassert(this.current, TokenType.Identifier)
 
-    const tokens = [this.current]
-
-    if (this.next.value === 'length') {
-      tokens.push(this.next)
-      this.index += 1
-    }
-    if (this.next.value === 'item') {
-      tokens.push(this.next)
-      tokens.push(this.next2)
-      this.index += 2
-    }
-
-    this.index += 1
     const node: ExpressStatement = {
       type: 'ExpressStatement',
-      expression: this.parseExpressions(tokens),
+      expression: this.scanExpression(),
     }
 
     node.assign = this.scanName()
@@ -425,14 +405,7 @@ export class Parser {
     // 乃得「甲」
     else if (this.current.value === 'return') {
       this.index += 1
-      if (this.current.type === TokenType.Identifier) {
-        node.expression = this.tokenToIdentifier(this.current)
-        this.index += 1
-      }
-      else {
-        node.expression = this.tokenToValue(this.current)
-        this.index += 1
-      }
+      node.expression = this.scanExpression()
     }
     // 乃歸空無
     else if (this.current.value === 'returnVoid') {
@@ -442,13 +415,43 @@ export class Parser {
     return node
   }
 
-  private scanExpression(shouldExit = (t: Token) => t.value === 'end') {
+  private scanExpression() {
     const tokens: Token[] = []
-    // @ts-ignore
-    while (!this.eof && !shouldExit(this.current)) {
-      tokens.push(this.current)
-      this.index += 1
+
+    const scan = () => {
+      const scanValue = () => {
+        tokens.push(this.current)
+        this.index += 1
+
+        if (this.current.value === 'length') {
+          tokens.push(this.current)
+          this.index += 1
+        }
+
+        if (this.current.value === 'item') {
+          tokens.push(this.current)
+          tokens.push(this.next)
+          this.index += 2
+        }
+      }
+
+      scanValue()
+      if (this.current.type === TokenType.ConditionOperator) {
+        tokens.push(this.current)
+        this.index += 1
+        scanValue()
+      }
+
+      if (this.current.type === TokenType.BooleanOperator) {
+        tokens.push(this.current)
+        this.index += 1
+      }
     }
+
+    scan()
+    if (this.current.type === TokenType.Identifier)
+      scan()
+
     return this.parseExpressions(tokens)
   }
 
@@ -484,29 +487,44 @@ export class Parser {
 
   // 除十三以十。名之曰「乙」。
   private scanOperationStatement() {
-    this.typeassert(this.next, [TokenType.String, TokenType.Number, TokenType.Bool, TokenType.Answer, TokenType.Identifier])
-    this.typeassert(this.next2, TokenType.OperationOrder)
-    this.typeassert(this.next3, [TokenType.String, TokenType.Number, TokenType.Bool, TokenType.Answer, TokenType.Identifier])
+    let expression: BinaryOperation | UnaryOperation | undefined
 
-    const expression: BinaryOperation = {
-      type: 'BinaryOperation',
-      operator: this.current.value as any,
-      left: this.parseExpressions([this.next]),
-      right: this.parseExpressions([this.next3]),
+    // 變「甲」
+    if (this.current.value === 'not') {
+      this.typeassert(this.next, [TokenType.String, TokenType.Number, TokenType.Bool, TokenType.Answer, TokenType.Identifier])
+      expression = {
+        type: 'UnaryOperation',
+        operator: 'not',
+        expression: this.parseExpressions([this.next]),
+      }
+      this.index += 2
     }
+    // 除「甲」以十
+    else {
+      this.typeassert(this.next, [TokenType.String, TokenType.Number, TokenType.Bool, TokenType.Answer, TokenType.Identifier])
+      this.typeassert(this.next2, TokenType.OperationOrder)
+      this.typeassert(this.next3, [TokenType.String, TokenType.Number, TokenType.Bool, TokenType.Answer, TokenType.Identifier])
 
-    // 於
-    if (this.next2.value === 'right')
-      [expression.left, expression.right] = [expression.right, expression.left]
+      expression = {
+        type: 'BinaryOperation',
+        operator: this.current.value as any,
+        left: this.parseExpressions([this.next]),
+        right: this.parseExpressions([this.next3]),
+      }
 
-    this.index += 4
+      // 於
+      if (this.next2.value === 'right')
+        [expression.left, expression.right] = [expression.right, expression.left]
 
-    if (this.current.type === TokenType.Operator && this.current.value === 'mod') {
-      if (expression.operator === '/')
-        expression.operator = 'mod'
-      else
-        this.throwUnexpectedToken('所餘幾何 should follow by 除')
-      this.index += 1
+      this.index += 4
+
+      if (this.current.type === TokenType.Operator && this.current.value === 'mod') {
+        if (expression.operator === '/')
+          expression.operator = 'mod'
+        else
+          this.throwUnexpectedToken('所餘幾何 should follow by 除')
+        this.index += 1
+      }
     }
 
     const node: OperationStatement = {
@@ -690,7 +708,17 @@ export class Parser {
     }
 
     if (tokens.length === 3) {
-      if (tokens[1].type === TokenType.ArrayOperator && tokens[1].value === 'item') {
+      // x y 中無陰乎
+      if (tokens[2].type === TokenType.BooleanOperator) {
+        return {
+          type: 'BinaryOperation',
+          operator: tokens[2].value as any,
+          left: this.parseExpressions([tokens[0]]),
+          right: this.parseExpressions([tokens[1]]),
+        }
+      }
+      // x 之 y
+      else if (tokens[1].type === TokenType.ArrayOperator && tokens[1].value === 'item') {
         // 之其餘
         if (tokens[2].value === 'rest') {
           return {
