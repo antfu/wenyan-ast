@@ -110,7 +110,7 @@ export default {
       }
     }
 
-    watch(code, run, { flush: 'post', lazy: true })
+    watch(code, run, { lazy: true })
 
     watch(example, () => {
       code.value = examples[example.value as any]?.code || ''
