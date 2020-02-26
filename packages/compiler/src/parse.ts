@@ -190,7 +190,7 @@ export class Parser {
     this.index += 2
     while (!this.eof && this.current.type === TokenType.OperationOrder && this.current.value === 'right') {
       if (this.next.type === TokenType.Answer)
-        node.args.push('Answer')
+        node.args.push({ type: 'Answer' })
 
       else if (this.next.type === TokenType.Identifier)
         node.args.push(this.tokenToIdentifier(this.next))
@@ -340,13 +340,13 @@ export class Parser {
       condition = this.parseExpressions(conditionsTokens)
     }
     else if (this.current.value === 'ifTrue') {
-      condition = 'Answer'
+      condition = { type: 'Answer' }
     }
     else if (this.current.value === 'ifFalse') {
       condition = {
         type: 'UnaryOperation',
         operator: 'not',
-        expression: 'Answer',
+        expression: { type: 'Answer' },
       }
     }
     else if (this.current.value === 'else') {
@@ -399,7 +399,7 @@ export class Parser {
 
     // 乃得矣
     if (this.current.value === 'returnPrev') {
-      node.expression = 'Answer'
+      node.expression = { type: 'Answer' }
       this.index += 1
     }
     // 乃得「甲」
@@ -441,16 +441,18 @@ export class Parser {
         this.index += 1
         scanValue()
       }
-
-      if (this.current.type === TokenType.BooleanOperator) {
-        tokens.push(this.current)
-        this.index += 1
-      }
     }
 
-    scan()
-    if (this.current.type === TokenType.Identifier)
+    // 「天」「地」中無陰乎
+    if (this.current.type === TokenType.Identifier && this.next.type === TokenType.Identifier && this.next2.type === TokenType.BooleanOperator) {
+      tokens.push(this.current)
+      tokens.push(this.next)
+      tokens.push(this.next2)
+      this.index += 3
+    }
+    else {
       scan()
+    }
 
     return this.parseExpressions(tokens)
   }
@@ -640,13 +642,15 @@ export class Parser {
 
   private tokenToIdentifierOrAnswer(token: Token): Identifier | Answer {
     if (token.type === TokenType.Answer)
-      return 'Answer'
+      return { type: 'Answer' }
     else
       return this.tokenToIdentifier(token)
   }
 
-  private tokenToIdentifierOrValue(token: Token) {
-    if (token.type === TokenType.Identifier)
+  private tokenToIdentifierOrValue(token: Token): Identifier | ASTValue | Answer {
+    if (token.type === TokenType.Answer)
+      return { type: 'Answer' }
+    else if (token.type === TokenType.Identifier)
       return this.tokenToIdentifier(token)
     else
       return this.tokenToValue(token)
@@ -681,7 +685,7 @@ export class Parser {
         return tokens[0].value
 
       else if (tokens[0].type === TokenType.Answer)
-        return 'Answer'
+        return { type: 'Answer' }
 
       else if (tokens[0].type === TokenType.Identifier)
         return this.tokenToIdentifier(tokens[0])
@@ -751,6 +755,28 @@ export class Parser {
     }
 
     this.throwUnexpectedToken(`Unexpected expression sequence: ${tokens.map(i => i.type).join(',')}`)
+  }
+
+  // 取二以施「甲」
+  private scanTake() {
+    this.typeassert(this.next, TokenType.Number, 'number')
+    this.typeassert(this.next2, TokenType.Call, '以施')
+    this.valueassert(this.next2, 'left', '以施')
+    this.typeassert(this.next3, TokenType.Identifier, 'function name')
+
+    const argsAmount = this.next.value as number
+
+    const args: Answer[] = new Array(argsAmount).fill(0).map((_, i) => ({
+      type: 'Answer',
+      offset: i - argsAmount + 1,
+    }))
+    const node: FunctionCall = {
+      type: 'FunctionCall',
+      function: this.tokenToIdentifier(this.next3),
+      args,
+    }
+    this.index += 4
+    return node
   }
 
   private get lastASTNode(): Statement | undefined {
@@ -918,6 +944,11 @@ export class Parser {
 
       if (this.current.value === 'concat') {
         this.pushAST(this.scanArrayConcat(), start)
+        continue
+      }
+
+      if (this.current.value === 'take') {
+        this.pushAST(this.scanTake(), start)
         continue
       }
 

@@ -37,11 +37,11 @@ export class JavascriptTranspiler extends Transplier {
 
     // eslint-disable-next-line array-callback-return
     return expressions.map((i) => {
-      if (i === 'Answer') {
-        return this.currentVar()
-      }
-      else if (typeof i === 'boolean') {
+      if (typeof i === 'boolean') {
         return i.toString()
+      }
+      else if (i.type === 'Answer') {
+        return this.currentVar(i.offset)
       }
       else if (i.type === 'Identifier') {
         return i.name
@@ -60,13 +60,13 @@ export class JavascriptTranspiler extends Transplier {
         return this.transValue(i)
       }
       else if (i.type === 'ArrayOperation' && i.operator === 'length') {
-        return `${i.identifier.name}.length`
+        return `${this.transValue(i.identifier)}.length`
       }
       else if (i.type === 'ArrayOperation' && i.operator === 'item') {
-        return `${i.identifier.name}[${this.transExpressions(i.argument)} - 1]`
+        return `${this.transValue(i.identifier)}[${this.transExpressions(i.argument)} - 1]`
       }
       else if (i.type === 'ArrayOperation' && i.operator === 'rest') {
-        return `${i.identifier.name}.slice(1)`
+        return `${this.transValue(i.identifier)}.slice(1)`
       }
       else {
         // @ts-ignore
@@ -82,13 +82,12 @@ export class JavascriptTranspiler extends Transplier {
   }
 
   private transFunctionCall(s: FunctionCall) {
-    let code = this.transAssign(s.assign, s.function.name, '')
+    let code = s.function.name
     for (const i of s.args)
       code += `(${this.transExpressions(i)})`
     if (!s.args.length)
       code += '()'
-    code += ';'
-    return code
+    return this.transAssign(s.assign, code)
   }
 
   private transIf(s: IfStatement) {
@@ -120,8 +119,8 @@ export class JavascriptTranspiler extends Transplier {
   }
 
   private transValue(node: ASTValue | Identifier | Answer) {
-    if (node === 'Answer')
-      return this.currentVar()
+    if (node.type === 'Answer')
+      return this.currentVar(node.offset)
 
     if (node.type === 'Identifier')
       return node.name

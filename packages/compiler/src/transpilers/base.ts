@@ -1,4 +1,4 @@
-import { Position, ModuleContext, SourceLocation } from '../types'
+import { ModuleContext, SourceLocation } from '../types'
 import { TransplierOptions } from '.'
 
 export abstract class Transplier {
@@ -19,8 +19,8 @@ export abstract class Transplier {
     return `_rand${++this.randomVarCount}`
   }
 
-  protected currentVar() {
-    return `_ans${this.varCount}`
+  protected currentVar(offset = 0) {
+    return `_ans${this.varCount + offset}`
   }
 
   protected nextVar() {

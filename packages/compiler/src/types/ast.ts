@@ -67,12 +67,12 @@ export type BinaryOperation = {
 
 export type ArrayOperation = {
   type: 'ArrayOperation'
-  identifier: Identifier
+  identifier: Identifier | Answer
 } & ({
   operator: 'length' | 'rest'
 } | {
   operator: 'item'
-  argument: Identifier | ASTValue
+  argument: Identifier | ASTValue | Answer
 })
 
 export type Expression =
@@ -186,7 +186,7 @@ export interface MacroStatement extends Node {
 export interface ArrayPush extends Node {
   type: 'ArrayPush'
   target: Identifier | Answer
-  values: (ASTValue | Identifier)[]
+  values: (ASTValue | Identifier | Answer)[]
 }
 
 export interface ArrayConcat extends Node {
@@ -203,7 +203,10 @@ export interface FunctionCall extends Node {
   assign?: AssignTarget
 }
 
-export type Answer = 'Answer'
+export type Answer = {
+  type: 'Answer'
+  offset?: number
+}
 
 export type AST = Program
 
