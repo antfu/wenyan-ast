@@ -920,7 +920,7 @@ export class Parser {
   private throwUnexpectedToken(message = Messages.UnexpectedTokenIllegal, loc = this.current?.loc, ...parameters: string[]): never {
     return this.errorHandler.throwError({
       name: 'ParseError',
-      pos: loc?.start,
+      loc,
       file: this.context.name,
       message,
       parameters,

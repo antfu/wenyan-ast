@@ -59,9 +59,14 @@ export default {
     const cm1 = ref<Vue>(null)
     const cm2 = ref<Vue>(null)
     const errorText = ref('')
+    let textMarker: any
+    let errorMarker: any
 
-    watch(code, () => {
+    const run = () => {
       console.clear()
+      // @ts-ignore
+      errorMarker?.clear()
+
       const compiler = new Compiler(
         createContext(code.value),
         {
@@ -87,9 +92,25 @@ export default {
         compiled.value = `// ERROR: ${e}`
         error.value = e
         errorText.value = ''
+
+        if (e.loc) {
+          // @ts-ignore
+          errorMarker = cm1.value?.codemirror.markText({
+            line: e.loc.start.line - 1,
+            ch: e.loc.start.column,
+          }, {
+            line: e.loc.end.line - 1,
+            ch: e.loc.end.column,
+          }, {
+            className: 'token-error',
+          })
+        }
+
         printError(e, (msg: any = '') => errorText.value += `${msg}\n`)
       }
-    })
+    }
+
+    watch(code, run, { flush: 'post', lazy: true })
 
     watch(example, () => {
       code.value = examples[example.value as any]?.code || ''
@@ -100,9 +121,9 @@ export default {
       cm1.value.codemirror.setSize(null, '100%')
       // @ts-ignore
       cm2.value.codemirror.setSize(null, '100%')
-    })
 
-    let textMarker: any
+      run()
+    })
 
     const highlight = ({ start, end }: SourceLocation) => {
       // @ts-ignore
@@ -222,6 +243,9 @@ html, body
   margin -1px
   border-radius 3px
   border 1px solid #42b98350
+
+.token-error
+  background url("https://raw.githubusercontent.com/jwulf/typojs-project/master/public/images/red-wavy-underline.gif") bottom repeat-x
 
 .viewer
   color: #111111

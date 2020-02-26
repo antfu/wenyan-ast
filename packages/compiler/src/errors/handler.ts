@@ -1,4 +1,4 @@
-import { Position } from '../types'
+import { SourceLocation } from '../types'
 import { assert } from '../utils'
 
 export type WenyanErrorName = 'Error' | 'ParseError' | 'TokenizeError' | 'TranspileError'
@@ -7,7 +7,7 @@ export class WenyanError extends Error {
   public name: WenyanErrorName = 'Error'
   public source?: string
   public file?: string
-  public pos?: Position
+  public loc?: SourceLocation
   public description?: string
 }
 
@@ -15,7 +15,7 @@ export interface ErrorOptions {
   name?: WenyanErrorName
   source?: string
   file?: string
-  pos?: Position
+  loc?: SourceLocation
   message: string
   parameters?: any[]
 }
@@ -43,7 +43,7 @@ export class ErrorHandler {
 
   createError({
     name,
-    pos,
+    loc,
     message,
     file,
     source,
@@ -60,7 +60,7 @@ export class ErrorHandler {
     error.file = file
     error.description = message
     error.source = source
-    error.pos = pos
+    error.loc = loc
 
     // @ts-ignore
     Error.captureStackTrace(error, this)

@@ -419,7 +419,10 @@ export class Tokenizer {
 
   private throwUnexpectedToken(message = Messages.UnexpectedTokenIllegal, ...parameters: string[]): never {
     return this.options.errorHandler.throwError({
-      pos: this.getPosition(),
+      loc: {
+        start: this.getPosition(),
+        end: this.getPosition(1),
+      },
       message,
       parameters,
     })
@@ -427,7 +430,10 @@ export class Tokenizer {
 
   private tolerateUnexpectedToken(message = Messages.UnexpectedTokenIllegal, ...parameters: string[]) {
     return this.options.errorHandler.tolerateError({
-      pos: this.getPosition(),
+      loc: {
+        start: this.getPosition(),
+        end: this.getPosition(1),
+      },
       message,
       parameters,
     })

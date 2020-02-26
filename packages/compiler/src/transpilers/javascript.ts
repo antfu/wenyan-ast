@@ -297,7 +297,7 @@ export class JavascriptTranspiler extends Transplier {
 
         default:
           // @ts-ignore
-          this.throwError(s.loc?.start, 'Unexpected AST Node %0', s.type)
+          this.throwError(s.loc, 'Unexpected AST Node %0', s.type)
       }
     }
 

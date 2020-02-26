@@ -1,4 +1,4 @@
-import { Position, ModuleContext } from '../types'
+import { Position, ModuleContext, SourceLocation } from '../types'
 import { TransplierOptions } from '.'
 
 export abstract class Transplier {
@@ -27,9 +27,9 @@ export abstract class Transplier {
     return `_ans${++this.varCount}`
   }
 
-  protected throwError(pos?: Position, message = '', ...parameters: string[]): never {
+  protected throwError(loc?: SourceLocation, message = '', ...parameters: string[]): never {
     this.options.errorHandler.throwError({
-      pos,
+      loc,
       message,
       parameters,
     })
