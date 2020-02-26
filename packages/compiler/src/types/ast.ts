@@ -52,6 +52,12 @@ export interface FunctionDeclaration extends Node {
   accessability: Accessability
 }
 
+export interface ObjectDeclaration extends Node {
+  type: 'ObjectDeclaration'
+  entries: { key: string; varType: VarType; value: Expression }[]
+  assign?: AssignTarget
+}
+
 export type UnaryOperation = {
   type: 'UnaryOperation'
   operator: 'not'
@@ -232,6 +238,7 @@ export type Statement =
   | WhileStatement
   | ArrayPush
   | ArrayConcat
+  | ObjectDeclaration
 
 export type ASTScope =
   | Program

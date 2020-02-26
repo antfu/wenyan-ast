@@ -1,5 +1,5 @@
 /* eslint-disable no-case-declarations */
-import { ASTScope, VarType, Accessability, IfStatement, ASTValue, Expression, FunctionCall, WhileStatement, ExpressStatement, Print, ReassignStatement, AssignTarget, ForInStatement, ModuleContext, ImportStatement, ArrayPush, Identifier, Answer, ArrayConcat, ForRangeStatement } from '../types'
+import { ASTScope, VarType, Accessability, IfStatement, ASTValue, Expression, FunctionCall, WhileStatement, ExpressStatement, Print, ReassignStatement, AssignTarget, ForInStatement, ModuleContext, ImportStatement, ArrayPush, Identifier, Answer, ArrayConcat, ForRangeStatement, ObjectDeclaration } from '../types'
 import { Transplier } from './base'
 import { getCompiledFromContext } from '.'
 
@@ -179,6 +179,11 @@ export class JavascriptTranspiler extends Transplier {
     return this.transAssign(s.assign, `${name}${values}`)
   }
 
+  private transObjectDeclaration(s: ObjectDeclaration) {
+    const values = s.entries.map(({ value, key }) => `"${key}": ${this.transExpressions(value)}`).join(',')
+    return this.transAssign(s.assign, `{${values}}`)
+  }
+
   private transScope(scope: ASTScope) {
     this.context.compiled = ''
     const strayVars = []
@@ -292,6 +297,10 @@ export class JavascriptTranspiler extends Transplier {
 
         case 'ArrayConcat':
           this.context.compiled += this.transArrayConcat(s)
+          break
+
+        case 'ObjectDeclaration':
+          this.context.compiled += this.transObjectDeclaration(s)
           break
 
         default:

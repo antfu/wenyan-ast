@@ -1,4 +1,4 @@
-import { Token, TokenType, AST, VariableDeclaration, VarType, ASTScope, Accessability, FunctionDeclaration, Statement, IfStatement, Expression, Return, FunctionCall, OperationStatement, BinaryOperation, WhileStatement, ExpressStatement, Identifier, ReassignStatement, Answer, ForInStatement, Position, Continue, Break, Comment, Print, ASTValue, ModuleContext, createContext, ImportOptions, ImportStatement, MacroStatement, ArrayPush, ArrayConcat, ForRangeStatement, UnaryOperation } from './types'
+import { Token, TokenType, AST, VariableDeclaration, VarType, ASTScope, Accessability, FunctionDeclaration, Statement, IfStatement, Expression, Return, FunctionCall, OperationStatement, BinaryOperation, WhileStatement, ExpressStatement, Identifier, ReassignStatement, Answer, ForInStatement, Position, Continue, Break, Comment, Print, ASTValue, ModuleContext, createContext, ImportOptions, ImportStatement, MacroStatement, ArrayPush, ArrayConcat, ForRangeStatement, UnaryOperation, ObjectDeclaration } from './types'
 import { Tokenizer, tokenizeContext, TokenizerOptions } from './tokenize'
 import { Messages } from './messages'
 import { ErrorHandler } from './errors/handler'
@@ -84,6 +84,10 @@ export class Parser {
     return this.tokens[this.index + 3]
   }
 
+  private get next4() {
+    return this.tokens[this.index + 4]
+  }
+
   protected get scope() {
     return this.scopeStack[0]
   }
@@ -161,23 +165,44 @@ export class Parser {
     return node
   }
 
-  private scanPropertyDeclarion(): Statement {
-    /*
-    this.typeassert(this.next, ['lit'], 'property key')
-    this.typeassert(this.next3, ['type'], 'property type')
-    this.typeassert(this.next4, ['assgn'], 'property value')
-    const x: Prop = {
-      op: 'prop',
-      type: gettok(i + 3, 1),
-      name: tokens[i + 1][1],
-      value: tokens[i + 5],
-      pos,
+  // 其物如是。
+  //  物之「「引」」者。數曰「引」。
+  //  物之「「實」」者。數曰「實」。
+  // 是謂「表列」之物也。
+  private scanObjectDeclaration() {
+    const node: ObjectDeclaration = {
+      type: 'ObjectDeclaration',
+      entries: [],
     }
-    i += 6
-    asc.push(x)
-    */
+    this.index += 1
 
-    this.throwUnexpectedToken()
+    while (!this.eof && this.current.type === TokenType.PropertyDeclarion) {
+      this.typeassert(this.next, TokenType.String, 'property key')
+      this.valueassert(this.next2, 'conj', 'property key')
+      this.typeassert(this.next3, TokenType.Type, 'property type')
+      this.typeassert(this.next4, TokenType.Assign, 'property value')
+      const key = this.next.value as string
+      const varType = this.next3.value as VarType
+      this.index += 5
+      const value = this.scanExpression()
+      node.entries.push({ key, varType, value })
+    }
+
+    const lastAST = this.lastASTNode
+
+    if (lastAST?.type === 'VariableDeclaration' && lastAST.varType === VarType.Object && lastAST.count === 1) {
+      node.assign = { type: 'Identifier', name: lastAST.names[0] }
+      this.popLastAST()
+    }
+
+    this.index += 1
+
+    this.assert(this.current.value === node.assign?.name, `end with same object name ${this.current.value}`)
+    this.assert(this.next.value === 'objectEnd', 'expecting 之物也')
+
+    this.index += 2
+
+    return node
   }
 
   // 施「漢諾塔」於「盤數」。於一。於二。於三。名之曰「史」。
@@ -379,7 +404,6 @@ export class Parser {
   // 夫「心語」之長。名之曰「長度」。
   private scanExpressStatement() {
     this.index += 1
-    this.typeassert(this.current, TokenType.Identifier)
 
     const node: ExpressStatement = {
       type: 'ExpressStatement',
@@ -735,7 +759,7 @@ export class Parser {
           return {
             type: 'ArrayOperation',
             operator: 'item',
-            identifier: this.tokenToIdentifier(tokens[0]),
+            identifier: this.tokenToIdentifierOrAnswer(tokens[0]),
             argument: this.tokenToIdentifierOrValue(tokens[2]), // TODO: number, string
           }
         }
@@ -776,6 +800,7 @@ export class Parser {
       args,
     }
     this.index += 4
+    node.assign = this.scanName()
     return node
   }
 
@@ -809,9 +834,9 @@ export class Parser {
         continue
       }
 
-      // property declarion
-      if (this.current.type === TokenType.PropertyDeclarion) {
-        this.pushAST(this.scanPropertyDeclarion(), start)
+      // object declarion
+      if (this.current.value === 'objectBody') {
+        this.pushAST(this.scanObjectDeclaration(), start)
         continue
       }
 
