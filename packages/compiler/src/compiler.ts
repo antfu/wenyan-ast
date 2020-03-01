@@ -1,4 +1,4 @@
-import stdlib from '../../stdlib'
+import stdlib from '../../stdlib/index'
 import { ErrorHandler } from './errors/handler'
 import { ModuleContext, createContext, CompileOptions, CompilerInternalOptions } from './types'
 import { parseContext } from './parse'

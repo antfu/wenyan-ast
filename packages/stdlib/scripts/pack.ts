@@ -29,8 +29,10 @@ async function build() {
     const code = await fs.readFile(path.join(libDir, filename), 'utf-8')
     libs[target][name] = preprocess(code)
   }
+  const json = JSON.stringify(libs)
 
-  await fs.writeFile(path.resolve(__dirname, '../index.js'), `module.exports=${JSON.stringify(libs)}`, 'utf-8')
+  await fs.writeFile(path.resolve(__dirname, '../index.js'), `module.exports=${json}`, 'utf-8')
+  await fs.writeFile(path.resolve(__dirname, '../index.ts'), `export default ${json}`, 'utf-8')
 }
 
 build()

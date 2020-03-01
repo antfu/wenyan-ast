@@ -3,14 +3,7 @@
     "config:base",
     ":preserveSemverRanges",
     "schedule:weekly",
-    "group:allNonMajor",
-    ":maintainLockFilesWeekly"
+    "group:allNonMajor"
   ],
-  "lockFileMaintenance": {
-    "extends": [
-      "group:allNonMajor"
-    ],
-    "commitMessageAction": "Update"
-  },
   "automerge": true
 }
