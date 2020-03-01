@@ -1,4 +1,4 @@
-import { ModuleContext, TargetLanguages } from '../types'
+import { ModuleContext, TargetLanguages } from '../../../types'
 import { ErrorHandler } from '../errors'
 import { JavascriptTranspiler } from './javascript'
 import { PythonTranspiler } from './python'

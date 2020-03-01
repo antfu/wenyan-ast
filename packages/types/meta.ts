@@ -1,4 +1,4 @@
-import { ErrorHandler } from '../errors'
+import { ErrorHandler } from '../compiler/src/errors'
 
 export type TargetLanguages = 'js' | 'py'
 export type RomanizeSystem = 'none' | 'pinyin' | 'unicode' | 'baxter'

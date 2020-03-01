@@ -1,0 +1,9 @@
+{
+  "name": "@wenyanlang/utils",
+  "version": "1.0.0",
+  "description": "Common utils for wenyan compiler",
+  "main": "dist/index.js",
+  "files": [
+    "dist"
+  ]
+}

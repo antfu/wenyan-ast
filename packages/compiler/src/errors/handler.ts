@@ -1,4 +1,4 @@
-import { SourceLocation } from '../types'
+import { SourceLocation } from '../../../types'
 import { assert } from '../utils'
 
 export type WenyanErrorName = 'Error' | 'ParseError' | 'TokenizeError' | 'TranspileError'

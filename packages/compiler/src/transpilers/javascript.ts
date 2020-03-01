@@ -1,5 +1,5 @@
 /* eslint-disable no-case-declarations */
-import { ASTScope, VarType, Accessability, IfStatement, ASTValue, Expression, FunctionCall, WhileStatement, ExpressStatement, Print, ReassignStatement, AssignTarget, ForInStatement, ModuleContext, ImportStatement, ArrayPush, Identifier, Answer, ArrayConcat, ForRangeStatement, ObjectDeclaration } from '../types'
+import { ASTScope, VarType, Accessability, IfStatement, ASTValue, Expression, FunctionCall, WhileStatement, ExpressStatement, Print, ReassignStatement, AssignTarget, ForInStatement, ImportStatement, ArrayPush, Identifier, Answer, ArrayConcat, ForRangeStatement, ObjectDeclaration } from '../../../types'
 import { Transplier } from './base'
 import { getCompiledFromContext } from '.'
 

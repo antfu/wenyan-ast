@@ -1,5 +1,5 @@
-import { num2hanzi, bool2hanzi } from '../../compiler/src/converts'
-import { TargetLanguages } from '../../compiler/src'
+import { num2hanzi, bool2hanzi } from '../../utils/src'
+import { TargetLanguages } from '../../types'
 
 export type LogCallback = (...args: any[]) => void
 

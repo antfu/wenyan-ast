@@ -4,7 +4,7 @@ import {
   CompileOptions,
   ModuleContext,
   createContext,
-} from './types'
+} from '../../types'
 
 const INDEX_FILENAME = '序'
 

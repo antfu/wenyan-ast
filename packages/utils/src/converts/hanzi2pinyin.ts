@@ -1,4 +1,4 @@
-import { RomanizeSystem } from '../types'
+import { RomanizeSystem } from '../../../types'
 import pinyin from './hanzi2roman-map-pinyin.json'
 import baxter from './hanzi2roman-map-baxter.json'
 

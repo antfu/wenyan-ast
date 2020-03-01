@@ -1,6 +1,6 @@
 import stdlib from '../../stdlib/index'
+import { ModuleContext, createContext, CompileOptions, CompilerInternalOptions } from '../../types'
 import { ErrorHandler } from './errors/handler'
-import { ModuleContext, createContext, CompileOptions, CompilerInternalOptions } from './types'
 import { parseContext } from './parse'
 import { transpileContext } from './transpilers'
 

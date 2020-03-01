@@ -1,9 +1,9 @@
-import { hanzi2num } from './converts'
-import { KEYWORDS_MAX_LENGTH, KEYWORDS, KEYWORDS_NUMBERS, KEYWORDS_COMMENT } from './types/keywords'
+import { hanzi2num } from '../../utils/src'
+import { KEYWORDS_MAX_LENGTH, KEYWORDS, KEYWORDS_NUMBERS, KEYWORDS_COMMENT } from '../../types/keywords'
+import { Token, TokenType, Position, SourceLocation, TokenDefinition, ModuleContext, createContext, ImportOptions } from '../../types'
 import { ErrorHandler } from './errors/handler'
 import { Messages } from './messages'
 import { Character } from './character'
-import { Token, TokenType, Position, SourceLocation, TokenDefinition, ModuleContext, createContext, MacroDefinition, ImportOptions } from './types'
 import { ImportModule } from './moduleReader'
 
 export interface TokenizerOptions {

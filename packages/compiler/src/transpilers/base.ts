@@ -1,4 +1,4 @@
-import { ModuleContext, SourceLocation } from '../types'
+import { ModuleContext, SourceLocation } from '../../../types'
 import { TransplierOptions } from '.'
 
 export abstract class Transplier {
