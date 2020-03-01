@@ -1,5 +1,5 @@
 import { tokenize } from '../src/tokenize'
-import { TokenType } from '../src/types'
+import { TokenType } from '../../types'
 
 describe('tokenize', () => {
   it('empty', () => {

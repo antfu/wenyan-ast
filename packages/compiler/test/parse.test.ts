@@ -1,6 +1,6 @@
 import { parse } from '../src/parse'
-import { VarType, VariableDeclaration, Accessability, AST, Statement } from '../src/types'
-import { clearLocation } from '../../utils'
+import { VarType, Accessability, AST, Statement } from '../../types'
+import { clearLocation } from '../../utils/src'
 
 const expectParsed = <T extends AST>(s: string, v: T) => expect(clearLocation(parse(s))).toEqual<T>(v)
 const expectBody = <T extends Statement[]>(s: string, v: T) => expect(clearLocation(parse(s).body)).toEqual<T>(v)
