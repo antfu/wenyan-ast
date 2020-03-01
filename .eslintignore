@@ -1,3 +1,7 @@
 dist
 typings
 node_modules
+packages/examples/index.js
+packages/examples/index.ts
+packages/stdlib/index.js
+packages/stdlib/index.ts
