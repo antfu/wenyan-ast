@@ -62,8 +62,6 @@ export class ErrorHandler {
     error.source = source
     error.loc = loc
 
-    // @ts-ignore
-    Error.captureStackTrace(error, this)
     return error
   }
 

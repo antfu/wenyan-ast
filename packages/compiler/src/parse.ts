@@ -1,4 +1,4 @@
-import { Token, TokenType, AST, VariableDeclaration, VarType, ASTScope, Accessability, FunctionDeclaration, Statement, IfStatement, Expression, Return, FunctionCall, OperationStatement, BinaryOperation, WhileStatement, ExpressStatement, Identifier, ReassignStatement, Answer, ForInStatement, Position, Continue, Break, Comment, Print, ASTValue, ModuleContext, createContext, ImportOptions, ImportStatement, MacroStatement, ArrayPush, ArrayConcat, ForRangeStatement, UnaryOperation, ObjectDeclaration } from '../../types'
+import { Token, TokenType, AST, VariableDeclaration, VarType, ASTScope, Accessability, FunctionDeclaration, Statement, IfStatement, Expression, Return, FunctionCall, OperationStatement, BinaryOperation, WhileStatement, ExpressStatement, Identifier, ReassignStatement, Answer, ForInStatement, Position, Continue, Break, Comment, Print, ASTValue, ModuleContext, createContext, ImportOptions, ImportStatement, MacroStatement, ArrayPush, ArrayConcat, ForRangeStatement, UnaryOperation, ObjectDeclaration, AssignableNode } from '../../types'
 import { Tokenizer, tokenizeContext, TokenizerOptions } from './tokenize'
 import { Messages } from './messages'
 import { ErrorHandler } from './errors/handler'
@@ -401,7 +401,7 @@ export class Parser {
     return node
   }
 
-  // 夫「心語」之長。名之曰「長度」。
+  // 夫「心語」之長。
   private scanExpressStatement() {
     this.index += 1
 
@@ -409,8 +409,6 @@ export class Parser {
       type: 'ExpressStatement',
       expression: this.scanExpression(),
     }
-
-    node.assign = this.scanName()
 
     return node
   }
@@ -556,7 +554,6 @@ export class Parser {
     const node: OperationStatement = {
       type: 'OperationStatement',
       expression,
-      assign: this.scanName(),
     }
 
     return node
@@ -595,8 +592,6 @@ export class Parser {
       node.values.push(this.tokenToIdentifier(this.next))
       this.index += 2
     }
-
-    node.assign = this.scanName()
 
     return node
   }
@@ -645,14 +640,51 @@ export class Parser {
     return node
   }
 
-  // 名之曰「乙」。
-  private scanName() {
-    if (this.current.type === TokenType.Name) {
-      this.typeassert(this.next, TokenType.Identifier)
-      const name: Identifier = this.tokenToIdentifier(this.next)
+  // 名之曰「甲」曰「乙」曰「丙」
+  private scanNames() {
+    const names: Token[] = []
+
+    // 名之曰「甲」
+    names.push(this.next)
+    this.index += 2
+    // 曰「乙」曰「丙」
+    while (!this.eof && this.current.type === TokenType.Assign) {
+      names.push(this.next)
       this.index += 2
-      return name
     }
+
+    const length = this.scope.body.length
+    this.assert(length - names.length >= 0, 'too many names to assign')
+    names.forEach((name, i) => {
+      const node = this.scope.body[length - names.length + i]
+      if (this.isAssignableNode(node)) {
+        this.assert(node.assign == null, `node ${node.type} is already named as "${node.assign?.name}", trying to assign a new name "${name.value}"`)
+        node.assign = this.tokenToIdentifier(name)
+      }
+      else {
+        this.pushAST({
+          type: 'ReassignStatement',
+          value: {
+            type: 'Answer',
+            offset: -names.length + i,
+          },
+          assign: this.tokenToIdentifier(name),
+        },
+        name.loc.start,
+        name.loc.end,
+        )
+      }
+    })
+  }
+
+  private isAssignableNode(node: Statement): node is AssignableNode {
+    return [
+      'ObjectDeclaration',
+      'OperationStatement',
+      'FunctionCall',
+      'ArrayConcat',
+      'ExpressStatement',
+    ].includes(node.type)
   }
 
   private tokenToIdentifier(token: Token): Identifier {
@@ -800,7 +832,6 @@ export class Parser {
       args,
     }
     this.index += 4
-    node.assign = this.scanName()
     return node
   }
 
@@ -831,6 +862,12 @@ export class Parser {
       // var declarion
       if (this.current.type === TokenType.Declarion) {
         this.pushAST(this.scanDeclarion(), start)
+        continue
+      }
+
+      // name
+      if (this.current.type === TokenType.Name) {
+        this.scanNames()
         continue
       }
 

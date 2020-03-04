@@ -199,7 +199,7 @@ export interface ArrayConcat extends Node {
   type: 'ArrayConcat'
   target: Identifier | Answer
   values: (Identifier | Answer)[]
-  assign: AssignTarget
+  assign?: AssignTarget
 }
 
 export interface FunctionCall extends Node {
@@ -249,3 +249,10 @@ export type ASTScope =
   | ForRangeStatement
   | TryStatement
   | CatchStatement
+
+export type AssignableNode =
+  | ObjectDeclaration
+  | OperationStatement
+  | FunctionCall
+  | ArrayConcat
+  | ExpressStatement
