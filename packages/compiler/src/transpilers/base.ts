@@ -2,9 +2,6 @@ import { ModuleContext, SourceLocation } from '../../../types'
 import { TransplierOptions } from '.'
 
 export abstract class Transplier {
-  protected varCount = 0
-  protected randomVarCount = 0
-
   constructor(
     public readonly context: ModuleContext,
     public readonly options: TransplierOptions,
@@ -16,15 +13,15 @@ export abstract class Transplier {
   abstract transpile(): string
 
   protected randomVar() {
-    return `_rand${++this.randomVarCount}`
+    return `_rand${++this.context.variableCount}`
   }
 
   protected currentVar(offset = 0) {
-    return `_ans${this.varCount + offset}`
+    return `_ans${this.context.variableCount + offset}`
   }
 
   protected nextVar() {
-    return `_ans${++this.varCount}`
+    return `_ans${++this.context.variableCount}`
   }
 
   protected throwError(loc?: SourceLocation, message = '', ...parameters: string[]): never {

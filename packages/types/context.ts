@@ -18,6 +18,9 @@ export interface ModuleContext {
   ast: Program
   compiled?: string
   imports: Record<string, ModuleContext>
+
+  // transplie
+  variableCount: number
 }
 
 export function createContext(
@@ -41,5 +44,6 @@ export function createContext(
       type: 'Program',
       body: [],
     },
+    variableCount: 0,
   }
 }
