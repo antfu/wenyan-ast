@@ -17,12 +17,12 @@
     "@types/prettier": "^1.19.0",
     "@vue/cli-plugin-typescript": "~4.2.0",
     "@vue/cli-service": "~4.2.0",
-    "@vue/composition-api": "^0.3.4",
+    "@vue/composition-api": "^0.4.0",
     "pug": "^2.0.4",
     "pug-plain-loader": "^1.0.0",
     "stylus": "^0.54.7",
     "stylus-loader": "^3.0.2",
-    "typescript": "~3.7.5",
+    "typescript": "~3.8.0",
     "vue-template-compiler": "^2.6.11"
   }
 }
