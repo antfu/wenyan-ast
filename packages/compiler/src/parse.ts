@@ -122,12 +122,12 @@ export class Parser {
       node.count = 1
       node.varType = this.next.value as VarType
 
-      node.values = [this.tokenToValue(this.next2, node.varType)]
+      node.values = [this.tokenToIdentifierOrValue(this.next2, node.varType)]
 
       this.index += 3
       // 名之曰「甲」
       if (!this.eof && this.current.type === TokenType.Name) {
-        node.names.push(this.next.value as unknown as string)
+        node.names.push(this.tokenToIdentifier(this.next))
         this.index += 2
       }
     }
@@ -144,18 +144,19 @@ export class Parser {
       this.index += 3
       // 曰一。曰三。曰五
       while (!this.eof && this.current.type === TokenType.Assign) {
-        node.values.push(this.tokenToValue(this.next, node.varType))
+        node.values.push(this.tokenToIdentifierOrValue(this.next, node.varType))
         this.index += 2
       }
       // 名之曰「甲」
       if (!this.eof && this.current.type === TokenType.Name) {
-        node.names.push(this.next.value as unknown as string)
+        node.names.push(this.tokenToIdentifier(this.next))
         this.index += 2
-      }
-      // 曰「乙」曰「丙」
-      while (!this.eof && this.current.type === TokenType.Assign) {
-        node.names.push(this.next.value as unknown as string)
-        this.index += 2
+        // 曰「乙」曰「丙」
+        // @ts-ignore
+        while (!this.eof && this.current.type === TokenType.Assign) {
+          node.names.push(this.tokenToIdentifier(this.next))
+          this.index += 2
+        }
       }
     }
     else {
@@ -191,7 +192,7 @@ export class Parser {
     const lastAST = this.lastASTNode
 
     if (lastAST?.type === 'VariableDeclaration' && lastAST.varType === VarType.Object && lastAST.count === 1) {
-      node.assign = { type: 'Identifier', name: lastAST.names[0] }
+      node.assign = lastAST.names[0]
       this.popLastAST()
     }
 
@@ -274,7 +275,7 @@ export class Parser {
     const lastAST = this.lastASTNode
 
     if (lastAST?.type === 'VariableDeclaration' && lastAST.varType === VarType.Function && lastAST.count === 1) {
-      node.name = lastAST.names[0]
+      node.name = lastAST.names[0].name
       node.accessability = lastAST.accessability
       this.popLastAST()
     }
@@ -703,13 +704,13 @@ export class Parser {
       return this.tokenToIdentifier(token)
   }
 
-  private tokenToIdentifierOrValue(token: Token): Identifier | ASTValue | Answer {
+  private tokenToIdentifierOrValue(token: Token, varType?: VarType): Identifier | ASTValue | Answer {
     if (token.type === TokenType.Answer)
       return { type: 'Answer' }
     else if (token.type === TokenType.Identifier)
       return this.tokenToIdentifier(token)
     else
-      return this.tokenToValue(token)
+      return this.tokenToValue(token, varType)
   }
 
   private tokenToValue(token: Token, varType?: VarType): ASTValue {
@@ -954,6 +955,16 @@ export class Parser {
           type: 'Print',
         }
         this.index += 1
+        if (this.lastASTNode?.type === 'VariableDeclaration') {
+          node.expressions = [...this.lastASTNode.names]
+          for (let i = node.expressions.length; i < this.lastASTNode.count; i++) {
+            node.expressions.push({
+              type: 'Answer',
+              offset: i - this.lastASTNode.count + 1,
+            })
+          }
+        }
+
         this.pushAST(node, start)
         continue
       }

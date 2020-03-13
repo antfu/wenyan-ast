@@ -39,7 +39,7 @@ export interface VariableDeclaration extends Node {
   type: 'VariableDeclaration'
   varType: VarType
   count: number
-  names: string[]
+  names: Identifier[]
   values: ASTValue[]
   accessability: Accessability
 }
@@ -170,6 +170,7 @@ export interface ReassignStatement extends Node {
 
 export interface Print extends Node {
   type: 'Print'
+  expressions?: Expression[]
 }
 
 export interface Comment extends Node {

@@ -102,7 +102,10 @@ export class JavascriptTranspiler extends Transplier {
   }
 
   private transPrint(s: Print) {
-    return `console.log(${this.currentVar()});`
+    const args = (s.expressions || [{ type: 'Answer' }])
+      .map(i => this.transExpressions(i))
+      .join(',')
+    return `console.log(${args});`
   }
 
   private transWhile(s: WhileStatement) {
@@ -186,19 +189,19 @@ export class JavascriptTranspiler extends Transplier {
 
   private transScope(scope: ASTScope) {
     this.context.compiled = ''
-    const strayVars = []
 
     for (const s of scope.body) {
       switch (s.type) {
         case 'VariableDeclaration':
           for (let j = 0; j < s.count; j++) {
-            let name = s.names[j]
-            if (name === undefined) {
-              name = this.nextVar()
-              strayVars.push(name)
-            }
+            const name = s.names[j]
+            let stringName = ''
+            if (name === undefined)
+              stringName = this.nextVar()
+            else
+              stringName = name.name
             const value = this.transValue(s.values[j] || { value: undefined, varType: s.varType, type: 'Value' })
-            this.context.compiled += `${this.getAccessDecaleration(name, s.accessability)}${value};`
+            this.context.compiled += `${this.getAccessDecaleration(stringName, s.accessability)}${value};`
           }
           break
 
