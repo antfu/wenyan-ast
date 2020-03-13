@@ -5,6 +5,7 @@ import {
   ModuleContext,
   createContext,
 } from '../../types'
+import STDLIB from '../../stdlib/index'
 
 const INDEX_FILENAME = '序'
 
@@ -55,7 +56,7 @@ export function ImportModule(
   importOptions: Partial<ImportOptions> = {},
 ): ModuleContext {
   const {
-    lib = { js: {}, py: {}, default: {} },
+    lib = STDLIB,
     lang = 'js',
     allowHttp = false,
     entryFilepath,

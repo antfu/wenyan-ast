@@ -1,5 +1,5 @@
 import { Token, TokenType, AST, VariableDeclaration, VarType, ASTScope, Accessability, FunctionDeclaration, Statement, IfStatement, Expression, Return, FunctionCall, OperationStatement, BinaryOperation, WhileStatement, ExpressStatement, Identifier, ReassignStatement, Answer, ForInStatement, Position, Continue, Break, Comment, Print, Literal, ModuleContext, createContext, ImportOptions, ImportStatement, MacroStatement, ArrayPush, ArrayConcat, ForRangeStatement, UnaryOperation, ObjectDeclaration, AssignableNode } from '../../types'
-import { Tokenizer, tokenizeContext, TokenizerOptions } from './tokenize'
+import { tokenizeContext, TokenizerOptions } from './tokenize'
 import { Messages } from './messages'
 import { ErrorHandler } from './errors/handler'
 
