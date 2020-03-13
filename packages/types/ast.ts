@@ -19,8 +19,8 @@ export const enum VarType {
   Auto = 'auto',
 }
 
-export interface ASTValue extends Node {
-  type: 'Value'
+export interface Literal extends Node {
+  type: 'Literal'
   varType: VarType
   value: string | number | boolean
 }
@@ -40,7 +40,7 @@ export interface VariableDeclaration extends Node {
   varType: VarType
   count: number
   names: Identifier[]
-  values: (ASTValue | Identifier | Answer)[]
+  values: (Literal | Identifier | Answer)[]
   accessability: Accessability
 }
 
@@ -73,12 +73,12 @@ export type BinaryOperation = {
 
 export type ArrayOperation = {
   type: 'ArrayOperation'
-  identifier: Identifier | Answer
+  identifier: Identifier | Literal | Answer
 } & ({
   operator: 'length' | 'rest'
 } | {
   operator: 'item'
-  argument: Identifier | ASTValue | Answer
+  argument: Identifier | Literal | Answer
 })
 
 export type Expression =
@@ -87,7 +87,7 @@ export type Expression =
   | ArrayOperation
   | boolean
   | Identifier
-  | ASTValue
+  | Literal
   | Answer
 
 export interface Identifier extends Node {
@@ -193,20 +193,20 @@ export interface MacroStatement extends Node {
 export interface ArrayPush extends Node {
   type: 'ArrayPush'
   target: Identifier | Answer
-  values: (ASTValue | Identifier | Answer)[]
+  values: (Literal | Identifier | Answer)[]
 }
 
 export interface ArrayConcat extends Node {
   type: 'ArrayConcat'
-  target: Identifier | Answer
-  values: (Identifier | Answer)[]
+  target: Identifier | Answer | Literal
+  values: (Identifier | Answer | Literal)[]
   assign?: AssignTarget
 }
 
 export interface FunctionCall extends Node {
   type: 'FunctionCall'
   function: Identifier
-  args: (Identifier | ASTValue | Answer)[]
+  args: (Identifier | Literal | Answer)[]
   assign?: AssignTarget
 }
 

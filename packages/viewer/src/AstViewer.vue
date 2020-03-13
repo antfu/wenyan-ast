@@ -30,7 +30,7 @@
         .value.array(:class='[typeof value]') {{value}}
       template(v-else-if='typeof value === "object"')
         ast-viewer(
-          :node='value'
+          :node='Literal'
           :depth='depth+1'
           @mouseover='passover'
           @mouseleave='passleave'

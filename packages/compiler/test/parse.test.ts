@@ -18,9 +18,11 @@ describe('parse', () => {
       type: 'VariableDeclaration',
       count: 1,
       varType: VarType.Number,
-      names: ['甲'],
+      names: [
+        { type: 'Identifier', name: '甲' },
+      ],
       values: [{
-        type: 'Value',
+        type: 'Literal',
         varType: VarType.Number,
         value: 3,
       }],
@@ -33,19 +35,23 @@ describe('parse', () => {
       type: 'VariableDeclaration',
       count: 3,
       varType: VarType.Number,
-      names: ['甲', '乙', '丙'],
+      names: [
+        { type: 'Identifier', name: '甲' },
+        { type: 'Identifier', name: '乙' },
+        { type: 'Identifier', name: '丙' },
+      ],
       values: [{
-        type: 'Value',
+        type: 'Literal',
         varType: VarType.Number,
         value: 1,
       },
       {
-        type: 'Value',
+        type: 'Literal',
         varType: VarType.Number,
         value: 3,
       },
       {
-        type: 'Value',
+        type: 'Literal',
         varType: VarType.Number,
         value: 5,
       }],

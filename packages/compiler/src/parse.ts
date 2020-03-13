@@ -1,4 +1,4 @@
-import { Token, TokenType, AST, VariableDeclaration, VarType, ASTScope, Accessability, FunctionDeclaration, Statement, IfStatement, Expression, Return, FunctionCall, OperationStatement, BinaryOperation, WhileStatement, ExpressStatement, Identifier, ReassignStatement, Answer, ForInStatement, Position, Continue, Break, Comment, Print, ASTValue, ModuleContext, createContext, ImportOptions, ImportStatement, MacroStatement, ArrayPush, ArrayConcat, ForRangeStatement, UnaryOperation, ObjectDeclaration, AssignableNode } from '../../types'
+import { Token, TokenType, AST, VariableDeclaration, VarType, ASTScope, Accessability, FunctionDeclaration, Statement, IfStatement, Expression, Return, FunctionCall, OperationStatement, BinaryOperation, WhileStatement, ExpressStatement, Identifier, ReassignStatement, Answer, ForInStatement, Position, Continue, Break, Comment, Print, Literal, ModuleContext, createContext, ImportOptions, ImportStatement, MacroStatement, ArrayPush, ArrayConcat, ForRangeStatement, UnaryOperation, ObjectDeclaration, AssignableNode } from '../../types'
 import { Tokenizer, tokenizeContext, TokenizerOptions } from './tokenize'
 import { Messages } from './messages'
 import { ErrorHandler } from './errors/handler'
@@ -584,7 +584,7 @@ export class Parser {
   private scanArrayConcat() {
     const node: ArrayConcat = {
       type: 'ArrayConcat',
-      target: this.tokenToIdentifierOrAnswer(this.next),
+      target: this.tokenToIdentifierOrValue(this.next),
       values: [],
       assign: undefined,
     }
@@ -592,7 +592,7 @@ export class Parser {
     this.index += 2
 
     while (!this.eof && this.current.type === TokenType.OperationOrder && this.current.value === 'left') {
-      node.values.push(this.tokenToIdentifier(this.next))
+      node.values.push(this.tokenToIdentifierOrValue(this.next))
       this.index += 2
     }
 
@@ -706,7 +706,7 @@ export class Parser {
       return this.tokenToIdentifier(token)
   }
 
-  private tokenToIdentifierOrValue(token: Token, varType?: VarType): Identifier | ASTValue | Answer {
+  private tokenToIdentifierOrValue(token: Token, varType?: VarType): Identifier | Literal | Answer {
     if (token.type === TokenType.Answer)
       return { type: 'Answer' }
     else if (token.type === TokenType.Identifier)
@@ -715,7 +715,7 @@ export class Parser {
       return this.tokenToValue(token, varType)
   }
 
-  private tokenToValue(token: Token, varType?: VarType): ASTValue {
+  private tokenToValue(token: Token, varType?: VarType): Literal {
     if (!varType) {
       varType = ({
         [TokenType.Number]: VarType.Number,
@@ -728,7 +728,7 @@ export class Parser {
       this.throwUnexpectedToken(`Expecting value token, got ${token.type}`)
 
     return {
-      type: 'Value',
+      type: 'Literal',
       varType,
       value: token.value as any,
       loc: token.loc,

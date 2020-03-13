@@ -1,5 +1,5 @@
 /* eslint-disable no-case-declarations */
-import { ASTScope, VarType, Accessability, IfStatement, ASTValue, Expression, FunctionCall, WhileStatement, ExpressStatement, Print, ReassignStatement, AssignTarget, ForInStatement, ImportStatement, ArrayPush, Identifier, Answer, ArrayConcat, ForRangeStatement, ObjectDeclaration } from '../../../types'
+import { ASTScope, VarType, Accessability, IfStatement, Literal, Expression, FunctionCall, WhileStatement, ExpressStatement, Print, ReassignStatement, AssignTarget, ForInStatement, ImportStatement, ArrayPush, Identifier, Answer, ArrayConcat, ForRangeStatement, ObjectDeclaration } from '../../../types'
 import { Transplier } from './base'
 import { getCompiledFromContext } from '.'
 
@@ -56,14 +56,17 @@ export class JavascriptTranspiler extends Transplier {
           operator = '%'
         return `${this.transExpressions(i.left)}${operator}${this.transExpressions(i.right)}`
       }
-      else if (i.type === 'Value') {
+      else if (i.type === 'Literal') {
         return this.transValue(i)
       }
       else if (i.type === 'ArrayOperation' && i.operator === 'length') {
         return `${this.transValue(i.identifier)}.length`
       }
       else if (i.type === 'ArrayOperation' && i.operator === 'item') {
-        return `${this.transValue(i.identifier)}[${this.transExpressions(i.argument)} - 1]`
+        let offset = '-1'
+        if (i.argument.type === 'Literal' && i.argument.varType === VarType.String)
+          offset = ''
+        return `${this.transValue(i.identifier)}[${this.transExpressions(i.argument)}${offset}]`
       }
       else if (i.type === 'ArrayOperation' && i.operator === 'rest') {
         return `${this.transValue(i.identifier)}.slice(1)`
@@ -121,7 +124,7 @@ export class JavascriptTranspiler extends Transplier {
     return `/*Module:${s.name}:start*/\nlet {${s.imports.join(',')}}=(function(){${getCompiledFromContext(m, this.options)};return this;})();\n/*Module:${s.name}:end*/\n`
   }
 
-  private transValue(node: ASTValue | Identifier | Answer) {
+  private transValue(node: Literal | Identifier | Answer) {
     if (node.type === 'Answer')
       return this.currentVar(node.offset)
 
@@ -200,7 +203,7 @@ export class JavascriptTranspiler extends Transplier {
               stringName = this.nextVar()
             else
               stringName = name.name
-            const value = this.transValue(s.values[j] || { value: undefined, varType: s.varType, type: 'Value' })
+            const value = this.transValue(s.values[j] || { value: undefined, varType: s.varType, type: 'Literal' })
             this.context.compiled += `${this.getAccessDecaleration(stringName, s.accessability)}${value};`
           }
           break

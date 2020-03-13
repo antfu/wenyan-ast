@@ -1,4 +1,4 @@
-import { ASTScope, Identifier, Statement, Answer, ASTValue, Expression } from '../../types'
+import { ASTScope, Identifier, Statement, Answer, Literal, Expression } from '../../types'
 
 export function shake<T extends ASTScope>(ast: T, identifiers: Identifier[]): T {
   // TODO:
@@ -45,11 +45,11 @@ function getDirectRefs(node?: Statement): (Identifier| Answer)[] {
   return []
 }
 
-function getRefs(nodes: (ASTValue | Identifier | Answer)[]) {
+function getRefs(nodes: (Literal | Identifier | Answer)[]) {
   return nodes.filter(i => i.type === 'Identifier' || i.type === 'Answer') as (Identifier | Answer)[]
 }
 
-function getIdentifiers(nodes: (ASTValue | Identifier | Answer)[]) {
+function getIdentifiers(nodes: (Literal | Identifier | Answer)[]) {
   return nodes.filter(i => i.type === 'Identifier') as Identifier[]
 }
 
@@ -61,7 +61,7 @@ function getRefsFromExpressions(exp?: Expression): (Identifier|Answer)[] {
   if (exp.type === 'Identifier')
     return [exp]
   if (exp.type === 'ArrayOperation')
-    return [exp.identifier]
+    return getRefs([exp.identifier])
   if (exp.type === 'BinaryOperation')
     return [...getRefsFromExpressions(exp.left), ...getRefsFromExpressions(exp.right)]
   if (exp.type === 'UnaryOperation')

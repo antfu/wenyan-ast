@@ -190,6 +190,8 @@ export class Tokenizer {
   private scanImport() {
     const name = this.tokens[this.tokens.length - 2].value as string
     const context = ImportModule(name, this.options.importOptions)
+    // share context macro
+    context.macros = this.context.macros
     this.context.imports[name] = context
     tokenizeContext(context)
   }
