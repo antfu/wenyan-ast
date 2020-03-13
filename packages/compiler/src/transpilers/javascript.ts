@@ -118,7 +118,7 @@ export class JavascriptTranspiler extends Transplier {
     if (!m)
       this.throwError(undefined, `Module ${s} not found`)
 
-    return getCompiledFromContext(m, this.options)
+    return `/*Module:${s.name}:start*/\nlet {${s.imports.join(',')}}=(function(){${getCompiledFromContext(m, this.options)};return this;})();\n/*Module:${s.name}:end*/\n`
   }
 
   private transValue(node: ASTValue | Identifier | Answer) {

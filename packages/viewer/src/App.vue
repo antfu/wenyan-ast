@@ -42,7 +42,7 @@ import prettier from 'prettier/standalone'
 // @ts-ignore
 import parserBabylon from 'prettier/parser-babylon'
 import { useStoragePlain } from '@vueuse/core'
-import { Compiler, Program, Token, SourceLocation, createContext, shake } from '../../compiler/src'
+import { Compiler, Program, Token, SourceLocation, createContext } from '../../compiler/src'
 import { printError } from '../../cli/src/error-log'
 import examples from '../../examples'
 
