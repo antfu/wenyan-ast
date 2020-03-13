@@ -85,7 +85,6 @@ export type Expression =
   | UnaryOperation
   | BinaryOperation
   | ArrayOperation
-  | boolean
   | Identifier
   | Literal
   | Answer

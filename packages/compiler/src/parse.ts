@@ -300,7 +300,11 @@ export class Parser {
   private scanWhileTrue() {
     const node: WhileStatement = {
       type: 'WhileStatement',
-      condition: true,
+      condition: {
+        type: 'Literal',
+        varType: VarType.Boolean,
+        value: true,
+      },
       body: [],
     }
     this.index += 1
@@ -395,7 +399,8 @@ export class Parser {
       || this.current.value === 'end',
     )
 
-    if (this.current.value === 'else')
+    if (this.current.value === 'else'
+    || this.current.value === 'elseIf')
       node.else = this.scanIfStatement(true)
 
     if (!isElseIf)
@@ -412,6 +417,9 @@ export class Parser {
       type: 'ExpressStatement',
       expression: this.scanExpression(),
     }
+
+    if (this.current.value === 'conj')
+      this.index += 1
 
     return node
   }
@@ -737,11 +745,11 @@ export class Parser {
 
   private parseExpressions(tokens: Token[]): Expression {
     if (tokens.length === 0)
-      return true
+      return { type: 'Literal', varType: VarType.Boolean, value: true }
 
     if (tokens.length === 1) {
       if (tokens[0].type === TokenType.Bool)
-        return tokens[0].value
+        return { type: 'Literal', varType: VarType.Boolean, value: tokens[0].value }
 
       else if (tokens[0].type === TokenType.Answer)
         return { type: 'Answer' }

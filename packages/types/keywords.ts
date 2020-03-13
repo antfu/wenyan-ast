@@ -84,7 +84,7 @@ export const KEYWORDS_ALL = {
   者: { type: TokenType.Control, value: 'conj' },
   若其然者: { type: TokenType.Control, value: 'ifTrue' },
   若其不然者: { type: TokenType.Control, value: 'ifFalse' },
-  或若: { type: TokenType.Control, value: 'elseif' },
+  或若: { type: TokenType.Control, value: 'elseIf' },
 
   其物如是: { type: TokenType.Control, value: 'objectBody' },
   之物也: { type: TokenType.Control, value: 'objectEnd' },

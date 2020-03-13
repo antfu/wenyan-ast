@@ -14,10 +14,11 @@ export class JavascriptTranspiler extends Transplier {
     return str.replace(/"/g, '\\"')
   }
 
-  private getAccessDecaleration(name: string, accessability: Accessability) {
+  private getAccessDecaleration(name: string, accessability: Accessability, constant = false) {
+    const decl = constant ? 'const' : 'var'
     return accessability === Accessability.public
-      ? `var ${name}=this.${name}=`
-      : `var ${name}=`
+      ? `${decl} ${name}=this.${name}=`
+      : `${decl} ${name}=`
   }
 
   private transForRangeStatement(s: ForRangeStatement) {
@@ -37,10 +38,7 @@ export class JavascriptTranspiler extends Transplier {
 
     // eslint-disable-next-line array-callback-return
     return expressions.map((i) => {
-      if (typeof i === 'boolean') {
-        return i.toString()
-      }
-      else if (i.type === 'Answer') {
+      if (i.type === 'Answer') {
         return this.currentVar(i.offset)
       }
       else if (i.type === 'Identifier') {
@@ -121,7 +119,7 @@ export class JavascriptTranspiler extends Transplier {
     if (!m)
       this.throwError(undefined, `Module ${s} not found`)
 
-    return `/*Module:${s.name}:start*/\nlet {${s.imports.join(',')}}=(function(){${getCompiledFromContext(m, this.options)};return this;})();\n/*Module:${s.name}:end*/\n`
+    return `/*___wenyan_module_${s.name}_start___*/\nlet {${s.imports.join(',')}}=(function(){${getCompiledFromContext(m, this.options)};return this;})();\n/*___wenyan_module_${s.name}_end___*/\n`
   }
 
   private transValue(node: Literal | Identifier | Answer) {
@@ -229,7 +227,7 @@ export class JavascriptTranspiler extends Transplier {
             starts = '()=>{'
             ends = '};'
           }
-          this.context.compiled += this.getAccessDecaleration(name, s.accessability) + starts + this.transScope(s) + ends
+          this.context.compiled += this.getAccessDecaleration(name, s.accessability, true) + starts + this.transScope(s) + ends
           break
 
         case 'IfStatement':
