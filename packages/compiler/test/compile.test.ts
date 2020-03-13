@@ -13,12 +13,12 @@ describe('compile js', () => {
 
   it('function without args', () => {
     expect(compile('吾有一術。名之曰「甲」。欲行是術。必先得二數。曰「乙」。曰「丙」。是術曰。是謂「甲」之術也。'))
-      .toEqual('var 甲=乙=>丙=>{};')
+      .toEqual('const 甲=乙=>丙=>{};')
   })
 
   it('function with multiple args', () => {
     expect(compile('吾有一術。名之曰「甲」。乃行是術曰。是謂「甲」之術也。'))
-      .toEqual('var 甲=()=>{};')
+      .toEqual('const 甲=()=>{};')
   })
 
   it('function call', () => {
