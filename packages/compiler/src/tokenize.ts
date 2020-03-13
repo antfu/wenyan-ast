@@ -328,7 +328,7 @@ export class Tokenizer {
         else if (char === '』') {
           curly -= 2
           if (curly <= 0) {
-            this.index += 2
+            this.index += 1
             break
           }
         }
