@@ -40,7 +40,7 @@ export interface VariableDeclaration extends Node {
   varType: VarType
   count: number
   names: Identifier[]
-  values: ASTValue[]
+  values: (ASTValue | Identifier | Answer)[]
   accessability: Accessability
 }
 
@@ -48,7 +48,7 @@ export interface FunctionDeclaration extends Node {
   type: 'FunctionDeclaration'
   body: Statement[]
   args: FunctionArgument[]
-  name?: string
+  name: Identifier | Answer
   accessability: Accessability
 }
 

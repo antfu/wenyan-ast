@@ -42,7 +42,7 @@ import prettier from 'prettier/standalone'
 // @ts-ignore
 import parserBabylon from 'prettier/parser-babylon'
 import { useStoragePlain } from '@vueuse/core'
-import { Compiler, Program, Token, SourceLocation, createContext } from '../../compiler/src'
+import { Compiler, Program, Token, SourceLocation, createContext, shake } from '../../compiler/src'
 import { printError } from '../../cli/src/error-log'
 import examples from '../../examples'
 
@@ -78,6 +78,7 @@ export default {
         compiler.run()
         tokens.value = compiler.tokens
         ast.value = compiler.ast
+        // ast.value = shake(compiler.ast, [{ type: 'Identifier', name: '勾股求弦' }])
         compiled.value = prettier.format(compiler.compiled, {
           parser: 'babel',
           plugins: [parserBabylon],

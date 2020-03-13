@@ -206,9 +206,7 @@ export class JavascriptTranspiler extends Transplier {
           break
 
         case 'FunctionDeclaration':
-          let name = s.name
-          if (name === undefined)
-            name = this.nextVar()
+          const name = this.transValue(s.name) as string
 
           let starts = ''
           let ends = ''

@@ -242,6 +242,7 @@ export class Parser {
       type: 'FunctionDeclaration',
       body: [],
       args: [],
+      name: { type: 'Answer' },
       accessability: Accessability.private,
     }
 
@@ -275,7 +276,7 @@ export class Parser {
     const lastAST = this.lastASTNode
 
     if (lastAST?.type === 'VariableDeclaration' && lastAST.varType === VarType.Function && lastAST.count === 1) {
-      node.name = lastAST.names[0].name
+      node.name = lastAST.names[0]
       node.accessability = lastAST.accessability
       this.popLastAST()
     }
@@ -286,7 +287,8 @@ export class Parser {
 
     this.index += 1
 
-    this.assert(this.current.value === node.name, `end with same function name ${this.current.value}`)
+    // @ts-ignore
+    this.assert(this.current.value === node.name?.name, `end with same function name ${this.current.value}`)
     this.assert(this.next.value === 'functionEnd2', 'expecting 之術也')
 
     this.index += 2
