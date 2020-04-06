@@ -15,8 +15,8 @@
   },
   "devDependencies": {
     "@types/prettier": "^1.19.0",
-    "@vue/cli-plugin-typescript": "~4.2.0",
-    "@vue/cli-service": "~4.2.0",
+    "@vue/cli-plugin-typescript": "~4.3.0",
+    "@vue/cli-service": "~4.3.0",
     "@vue/composition-api": "^0.5.0",
     "pug": "^2.0.4",
     "pug-plain-loader": "^1.0.0",
