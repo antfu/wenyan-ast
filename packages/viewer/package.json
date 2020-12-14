@@ -9,12 +9,12 @@
   "dependencies": {
     "@vueuse/core": "^2.0.18",
     "@wenyanlang/highlight": "^0.1.1",
-    "prettier": "^1.19.1",
+    "prettier": "^2.0.0",
     "vue": "^2.6.11",
     "vue-codemirror": "^4.0.6"
   },
   "devDependencies": {
-    "@types/prettier": "^1.19.0",
+    "@types/prettier": "^2.0.0",
     "@vue/cli-plugin-typescript": "~4.5.0",
     "@vue/cli-service": "~4.5.0",
     "@vue/composition-api": "^0.6.0",
