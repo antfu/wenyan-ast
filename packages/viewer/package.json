@@ -7,7 +7,7 @@
     "build": "npm -C ../examples run pack && vue-cli-service build"
   },
   "dependencies": {
-    "@vueuse/core": "^2.0.18",
+    "@vueuse/core": "^3.0.0",
     "@wenyanlang/highlight": "^0.1.1",
     "prettier": "^1.19.1",
     "vue": "^2.6.11",
