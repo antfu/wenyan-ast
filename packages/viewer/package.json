@@ -21,7 +21,7 @@
     "pug": "^3.0.0",
     "pug-plain-loader": "^1.0.0",
     "stylus": "^0.54.7",
-    "stylus-loader": "^3.0.2",
+    "stylus-loader": "^4.0.0",
     "typescript": "~4.0.0",
     "vue-template-compiler": "^2.6.11"
   }
